@@ -4,14 +4,10 @@ set -euo pipefail
 # Print usage instructions
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [path_to_archive]
+Usage: $(basename "$0")
 
 Options:
   -h, --help    Show this help message and exit
-
-Parameters:
-  path_to_archive    Path to the Antigravity.tar.gz archive.
-                     (Default: \$HOME/Downloads/Antigravity.tar.gz)
 EOF
 }
 
@@ -19,15 +15,6 @@ EOF
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     usage
     exit 0
-fi
-
-# Define source archive based on environment or command arguments
-DOWNLOAD_ARCHIVE="${1:-$HOME/Downloads/Antigravity.tar.gz}"
-
-# Verify the archive exists before proceeding
-if [ ! -f "$DOWNLOAD_ARCHIVE" ]; then
-    echo "Error: Cannot find archive at $DOWNLOAD_ARCHIVE. Exiting."
-    exit 1
 fi
 
 # Get directories
@@ -51,7 +38,6 @@ rm -rf "$RPMBUILD_DIR"
 mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 echo "Copying sources to rpmbuild directory..."
-cp "$DOWNLOAD_ARCHIVE" "$RPMBUILD_DIR/SOURCES/Antigravity.tar.gz"
 cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-icon.png"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity.spec"
 
