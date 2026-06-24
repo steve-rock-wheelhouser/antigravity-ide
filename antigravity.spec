@@ -1,6 +1,6 @@
 Name:           antigravity
 Version:        1.0.0
-Release:        7%{?dist}
+Release:        8%{?dist}
 Summary:        Antigravity launcher utility
 
 License:        Proprietary
@@ -28,6 +28,8 @@ cp %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/antigravity-icon.png
 # Create launcher wrapper script in /usr/bin/antigravity
 cat <<'EOF' > %{buildroot}%{_bindir}/antigravity
 #!/usr/bin/bash
+# Clean up any stale antigravity processes (excluding this wrapper script) to release the single-instance lock
+pgrep -x antigravity | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
 exec /usr/share/antigravity/antigravity "$@"
 EOF
 chmod 755 %{buildroot}%{_bindir}/antigravity
