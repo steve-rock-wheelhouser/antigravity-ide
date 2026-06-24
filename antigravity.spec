@@ -40,7 +40,7 @@ if [ ! -f "$BINARY" ]; then
     TEMP_DIR=$(mktemp -d)
     trap 'rm -rf "$TEMP_DIR"' EXIT
     
-    URL="https://github.com/steve-rock-wheelhouser/antigravity/releases/latest/download/Antigravity.tar.gz"
+    URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.1.4-6481382726303744/linux-x64/Antigravity.tar.gz"
     
     echo "Downloading from $URL..."
     if curl -sL -o "$TEMP_DIR/Antigravity.tar.gz" "$URL"; then

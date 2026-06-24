@@ -75,7 +75,7 @@ SOURCE_DIR=$(dirname "$BIN_FILE")
 
 # Terminate any running Antigravity processes only right before replacing files
 echo "Terminating any running Antigravity processes..."
-pkill -f antigravity || true
+pkill -x antigravity || true
 
 # Prepare backup directory for safe rollback
 echo "Backing up existing installation..."

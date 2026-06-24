@@ -23,8 +23,31 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     exit 0
 fi
 
-# Define source paths based on environment or command arguments
-DOWNLOAD_ARCHIVE="${1:-$HOME/Downloads/Antigravity.tar.gz}"
+# Initialize variables for the trap handler
+TEMP_DOWNLOAD=""
+TEMP_DIR=""
+BACKUP_DIR=""
+trap 'rm -f "$TEMP_DOWNLOAD"; [ -n "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"; [ -n "$BACKUP_DIR" ] && rm -rf "$BACKUP_DIR"' EXIT
+
+# Default Google Cloud Storage download URL
+DEFAULT_GOOGLE_URL="https://storage.googleapis.com/antigravity-public/antigravity-hub/2.1.4-6481382726303744/linux-x64/Antigravity.tar.gz"
+
+ARCHIVE_ARG="${1:-}"
+DOWNLOAD_URL=""
+DOWNLOAD_ARCHIVE=""
+
+if [[ "$ARCHIVE_ARG" =~ ^https?:// ]]; then
+    DOWNLOAD_URL="$ARCHIVE_ARG"
+elif [[ -n "$ARCHIVE_ARG" ]]; then
+    DOWNLOAD_ARCHIVE="$ARCHIVE_ARG"
+else
+    DEFAULT_LOCAL="$HOME/Downloads/Antigravity.tar.gz"
+    if [ -f "$DEFAULT_LOCAL" ]; then
+        DOWNLOAD_ARCHIVE="$DEFAULT_LOCAL"
+    else
+        DOWNLOAD_URL="$DEFAULT_GOOGLE_URL"
+    fi
+fi
 
 # Resolve the icon relative to the script directory to make the installer portable
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,6 +59,19 @@ APPS_DIR="$HOME/.local/share/applications"
 ICONS_DIR="$HOME/.local/share/icons"
 
 echo "Starting Antigravity deployment..."
+
+# Download archive if a URL is targeted
+if [ -n "$DOWNLOAD_URL" ]; then
+    echo "Downloading Antigravity package from Google..."
+    TEMP_DOWNLOAD=$(mktemp -t Antigravity-XXXXXX.tar.gz)
+    if curl -sL -o "$TEMP_DOWNLOAD" "$DOWNLOAD_URL"; then
+        DOWNLOAD_ARCHIVE="$TEMP_DOWNLOAD"
+    else
+        echo "Error: Failed to download Antigravity from $DOWNLOAD_URL"
+        rm -f "$TEMP_DOWNLOAD"
+        exit 1
+    fi
+fi
 
 # 1. Verify the archive exists before proceeding
 if [ ! -f "$DOWNLOAD_ARCHIVE" ]; then
@@ -56,8 +92,6 @@ mkdir -p "$ICONS_DIR"
 # 3. Safely extract and locate the payload
 echo "Extracting payload..."
 TEMP_DIR=$(mktemp -d)
-# Ensure clean up of temp dir on exit
-trap 'rm -rf "$TEMP_DIR"' EXIT
 
 tar -xzf "$DOWNLOAD_ARCHIVE" -C "$TEMP_DIR"
 
@@ -75,13 +109,11 @@ SOURCE_DIR=$(dirname "$BIN_FILE")
 
 # Terminate any running Antigravity processes only right before replacing files
 echo "Terminating any running Antigravity processes..."
-pkill -f antigravity || true
+pkill -x antigravity || true
 
 # Prepare backup directory for safe rollback
 echo "Backing up existing installation..."
 BACKUP_DIR=$(mktemp -d)
-# Update trap to clean up both directories
-trap 'rm -rf "$TEMP_DIR" "$BACKUP_DIR"' EXIT
 
 # Copy existing files to backup if installation directory is not empty
 if [ -d "$INSTALL_DIR" ] && [ "$(ls -A "$INSTALL_DIR")" ]; then
