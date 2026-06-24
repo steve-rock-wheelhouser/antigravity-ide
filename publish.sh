@@ -46,6 +46,34 @@ if [ -f "${RPM_FILES[0]}" ]; then
     done
 fi
 
+# Locate and copy the most recent release RPM build if it exists
+echo "Locating the most recent release RPM build..."
+LATEST_RELEASE_RPM=$(ls -t "$SCRIPT_DIR"/steve-rock-wheelhouser-release-*.rpm 2>/dev/null | head -n 1)
+
+if [ -n "$LATEST_RELEASE_RPM" ]; then
+    RELEASE_FILENAME=$(basename "$LATEST_RELEASE_RPM")
+    echo "Found most recent release build: $RELEASE_FILENAME"
+    
+    # Copy the new release build to the repository
+    echo "Copying $RELEASE_FILENAME to $FEDORA_REPO_DIR..."
+    cp "$LATEST_RELEASE_RPM" "$FEDORA_REPO_DIR/"
+    
+    # Clean up older release builds in the repository, keeping only the 1 most recent one
+    echo "Cleaning up old release builds in $FEDORA_REPO_DIR (keeping only the most recent)..."
+    RELEASE_FILES=("$FEDORA_REPO_DIR"/steve-rock-wheelhouser-release-*.rpm)
+    if [ -f "${RELEASE_FILES[0]}" ]; then
+        ls -t "${RELEASE_FILES[@]}" 2>/dev/null | tail -n +2 | while read -r old_rpm; do
+            if [ -f "$old_rpm" ]; then
+                echo "Removing older release build: $(basename "$old_rpm")"
+                rm -f "$old_rpm"
+            fi
+        done
+    fi
+else
+    echo "No release RPM build found in $SCRIPT_DIR. Skipping release RPM publishing."
+fi
+
+
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
 if [ -f "$FEDORA_REPO_DIR/update_repo.sh" ]; then
     echo "Running update_repo.sh in $FEDORA_REPO_DIR..."

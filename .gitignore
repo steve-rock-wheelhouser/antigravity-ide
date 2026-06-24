@@ -1,2 +1,4 @@
 rpmbuild/
+rpmbuild-release/
 *.rpm
+
