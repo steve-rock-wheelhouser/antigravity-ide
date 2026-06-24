@@ -1,6 +1,6 @@
 Name:           antigravity
 Version:        1.0.0
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Antigravity launcher utility
 
 License:        Proprietary
@@ -62,6 +62,10 @@ if curl -sL -o "$TEMP_DIR/Antigravity.tar.gz" "$URL"; then
         SOURCE_DIR=$(dirname "$BIN_FILE")
         rm -rf "$INSTALL_DIR"/*
         cp -r "$SOURCE_DIR/"* "$INSTALL_DIR/"
+        
+        # Ensure correct system-wide permissions and ownership
+        chown -R root:root "$INSTALL_DIR"
+        chmod -R u+rwX,go+rX "$INSTALL_DIR"
         chmod +x "$INSTALL_DIR/antigravity"
         echo "Antigravity payload installed successfully in $INSTALL_DIR."
     else
