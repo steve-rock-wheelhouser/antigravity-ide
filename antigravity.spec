@@ -1,6 +1,6 @@
 Name:           antigravity
 Version:        1.0.0
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Antigravity launcher utility
 
 License:        Proprietary
@@ -44,6 +44,10 @@ Icon=antigravity-icon
 Terminal=false
 Categories=Utility;Development;
 EOF
+
+%pre
+echo "Terminating any running Antigravity processes..."
+pkill -x antigravity || true
 
 %post
 INSTALL_DIR="/usr/share/antigravity"
