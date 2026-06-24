@@ -5,6 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Ensure standard system paths are in the PATH
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:${PATH:-}"
+
 # Define target repository directory
 FEDORA_REPO_DIR="$(cd "$SCRIPT_DIR/../fedora-repo" && pwd)"
 
