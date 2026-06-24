@@ -1,6 +1,6 @@
 Name:           antigravity
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Antigravity launcher utility
 
 License:        Proprietary
