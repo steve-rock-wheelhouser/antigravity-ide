@@ -30,13 +30,21 @@ if [ ! -d "$FEDORA_REPO_DIR" ]; then
     exit 1
 fi
 
-# Clean up older antigravity builds in the repository to only keep the latest one
-echo "Removing older Antigravity builds from $FEDORA_REPO_DIR..."
-rm -f "$FEDORA_REPO_DIR"/antigravity-*.rpm
-
 # Copy the new build to the repository
 echo "Copying $RPM_FILENAME to $FEDORA_REPO_DIR..."
 cp "$LATEST_RPM" "$FEDORA_REPO_DIR/"
+
+# Clean up older antigravity builds in the repository, keeping only the 2 most recent ones
+echo "Cleaning up old Antigravity builds in $FEDORA_REPO_DIR (keeping only the 2 most recent)..."
+RPM_FILES=("$FEDORA_REPO_DIR"/antigravity-*.rpm)
+if [ -f "${RPM_FILES[0]}" ]; then
+    ls -t "${RPM_FILES[@]}" 2>/dev/null | tail -n +3 | while read -r old_rpm; do
+        if [ -f "$old_rpm" ]; then
+            echo "Removing older build: $(basename "$old_rpm")"
+            rm -f "$old_rpm"
+        fi
+    done
+fi
 
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
 if [ -f "$FEDORA_REPO_DIR/update_repo.sh" ]; then
