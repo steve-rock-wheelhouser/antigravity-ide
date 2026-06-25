@@ -59,6 +59,9 @@ cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity.spec"
 echo "Building RPM..."
 rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/antigravity.spec"
 
+echo "Signing built RPMs..."
+rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
+
 echo "Copying built RPMs to workspace root..."
 cp "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
 

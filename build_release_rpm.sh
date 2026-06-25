@@ -34,6 +34,9 @@ cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/steve-rock-wheelhouser-release.spec"
 echo "Building release RPM..."
 rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/steve-rock-wheelhouser-release.spec"
 
+echo "Signing built release RPMs..."
+rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
+
 echo "Copying built release RPMs to workspace root..."
 cp "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
 
