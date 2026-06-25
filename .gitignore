@@ -1,4 +1,5 @@
 rpmbuild/
 rpmbuild-release/
 *.rpm
-
+*.key
+steve-rock-wheelhouser-gpg-secret.key
