@@ -9,7 +9,7 @@ Usage: ./pull.sh [-f]
 
 Options:
   -f    Force sync from origin/<current-branch> and overwrite local files.
-    Preserves local version values in marquee-server.spec and pyproject.toml.
+        Preserves local version values in antigravity-ide.spec.
 EOF
 }
 
@@ -35,10 +35,8 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-SPEC_FILE="marquee-server.spec"
-PYPROJECT_FILE="pyproject.toml"
+SPEC_FILE="antigravity-ide.spec"
 LOCAL_VERSION=""
-LOCAL_PYPROJECT_VERSION=""
 
 if [[ "${FORCE_SYNC}" == true ]]; then
     if [[ -f "${SPEC_FILE}" ]]; then
@@ -50,17 +48,6 @@ if [[ "${FORCE_SYNC}" == true ]]; then
         fi
     else
         echo "⚠️ ${SPEC_FILE} not found before force sync; no Version value to preserve."
-    fi
-
-    if [[ -f "${PYPROJECT_FILE}" ]]; then
-        LOCAL_PYPROJECT_VERSION="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=[[:space:]]*"/ {print $2; exit}' "${PYPROJECT_FILE}")"
-        if [[ -n "${LOCAL_PYPROJECT_VERSION}" ]]; then
-            echo "🧷 Preserving local ${PYPROJECT_FILE} version: ${LOCAL_PYPROJECT_VERSION}"
-        else
-            echo "⚠️ Could not parse local version from ${PYPROJECT_FILE}; force sync will continue without preserving pyproject version."
-        fi
-    else
-        echo "⚠️ ${PYPROJECT_FILE} not found before force sync; no pyproject version value to preserve."
     fi
 fi
 
@@ -94,17 +81,7 @@ if [[ "${FORCE_SYNC}" == true ]]; then
         fi
     fi
 
-    if [[ -n "${LOCAL_PYPROJECT_VERSION}" && -f "${PYPROJECT_FILE}" ]]; then
-        REMOTE_PYPROJECT_VERSION="$(awk -F'"' '/^[[:space:]]*version[[:space:]]*=[[:space:]]*"/ {print $2; exit}' "${PYPROJECT_FILE}")"
-        if [[ "${REMOTE_PYPROJECT_VERSION}" != "${LOCAL_PYPROJECT_VERSION}" ]]; then
-            sed -i -E "s/^version[[:space:]]*=[[:space:]]*\"[^\"]+\"/version = \"${LOCAL_PYPROJECT_VERSION}\"/" "${PYPROJECT_FILE}"
-            echo "✅ Restored local ${PYPROJECT_FILE} version: ${LOCAL_PYPROJECT_VERSION}"
-        else
-            echo "✅ ${PYPROJECT_FILE} version already matches local value (${LOCAL_PYPROJECT_VERSION})."
-        fi
-    fi
-
-    echo "✅ Force sync complete. Local checkout now matches $REMOTE/$BRANCH (except preserved local version metadata in ${SPEC_FILE} and ${PYPROJECT_FILE})."
+    echo "✅ Force sync complete. Local checkout now matches $REMOTE/$BRANCH (except preserved local version metadata in ${SPEC_FILE})."
     exit 0
 fi
 

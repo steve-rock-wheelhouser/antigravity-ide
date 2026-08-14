@@ -15,7 +15,7 @@ Fedora Copr is the official build system for community-maintained repositories. 
 1. Log in to [copr.fedorainfracloud.org](https://copr.fedorainfracloud.org/).
 2. Click **New Project** in your dashboard.
 3. Configure the project:
-   * **Project Name**: `utilities` (or `antigravity`)
+   * **Project Name**: `utilities` (or `antigravity-ide`)
    * **Description**: Custom utilities by Steve Rock Wheelhouser.
    * **Chroots**: Select target architectures and Fedora releases (e.g., `fedora-40-x86_64`, `fedora-41-x86_64`, `fedora-rawhide-x86_64`).
 4. Click **Create**.
@@ -24,10 +24,10 @@ Fedora Copr is the official build system for community-maintained repositories. 
 Copr can build directly from your GitHub repo using the spec file.
 1. Inside your Copr project, go to the **Packages** tab and click **New Package**.
 2. Configure:
-   * **Name**: `antigravity`
+   * **Name**: `antigravity-ide`
    * **Source Type**: `git`
-   * **Clone URL**: `https://github.com/steve-rock-wheelhouser/antigravity.git`
-   * **Spec File Path**: `antigravity.spec` (Copr will find it at the root of your repo)
+   * **Clone URL**: `https://github.com/steve-rock-wheelhouser/antigravity-ide.git`
+   * **Spec File Path**: `antigravity-ide.spec` (Copr will find it at the root of your repo)
 3. Click **Create**.
 
 ### Step 3: Trigger Builds and Configure Webhooks
@@ -38,7 +38,7 @@ Copr can build directly from your GitHub repo using the spec file.
 Once built, users can enable your Copr repository and install packages with standard commands:
 ```bash
 sudo dnf copr enable steve-rock-wheelhouser/utilities
-sudo dnf install antigravity
+sudo dnf install antigravity-ide
 ```
 
 ---
@@ -59,5 +59,5 @@ To add your custom repository (`steve-rock-wheelhouser/fedora-repo`) to Repology
 
 ### Step 2: Track Package Versions
 Once Repology accepts the repository, it will regularly scan your YUM metadata. It will display:
-* Which versions of `antigravity` (or other utilities) are currently published.
+* Which versions of `antigravity-ide` (or other utilities) are currently published.
 * Whether they are up-to-date or out-of-date compared to your upstream GitHub releases.

@@ -20,8 +20,8 @@ fi
 # Get directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RPMBUILD_DIR="$SCRIPT_DIR/rpmbuild"
-SPEC_FILE="$SCRIPT_DIR/antigravity.spec"
-ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-icon.png"
+SPEC_FILE="$SCRIPT_DIR/antigravity-ide.spec"
+ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-ide-icon.png"
 
 if [ ! -f "$ICON_FILE" ]; then
     echo "Error: Cannot find icon at $ICON_FILE. Exiting."
@@ -53,11 +53,11 @@ rm -rf "$RPMBUILD_DIR"
 mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 echo "Copying sources to rpmbuild directory..."
-cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-icon.png"
-cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity.spec"
+cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-ide-icon.png"
+cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
 echo "Building RPM..."
-rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/antigravity.spec"
+rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
 echo "Signing built RPMs..."
 rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
