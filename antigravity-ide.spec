@@ -3,9 +3,10 @@ Version:        1.0.0
 Release:        20%{?dist}
 Summary:        Antigravity IDE launcher utility
 
-License:        Proprietary
+License:        GPL-3.0-or-later
 URL:            https://github.com/steve-rock-wheelhouser/antigravity-ide
 Source0:        antigravity-ide-icon.png
+Source1:        LICENSE
 
 BuildArch:      noarch
 
@@ -31,11 +32,12 @@ Requires:       gnome-keyring
 Requires:       libsecret
 
 %description
-Launcher utility for Antigravity IDE on Fedora and Enterprise Linux (Rocky Linux 10).
-It automatically downloads and installs the latest version of Antigravity IDE on first run.
+Open-source launcher and desktop integration utility for Antigravity IDE on
+Fedora and Enterprise Linux (Rocky Linux 10). It automatically downloads and
+installs the latest stable Antigravity IDE binary from Google on first run.
 
 %prep
-# Nothing to prep
+cp %{SOURCE1} .
 
 %install
 rm -rf %{buildroot}
@@ -133,11 +135,19 @@ if command -v update-desktop-database >/dev/null 2>&1; then
 fi
 
 %files
+%doc LICENSE
 %{_bindir}/antigravity-ide
 %{_bindir}/antigravity
 %{_datadir}/pixmaps/antigravity-ide-icon.png
 %{_datadir}/applications/antigravity-ide.desktop
 
 %changelog
+* Fri Sep 18 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-20
+- License packaging scripts and launcher under GPLv3 (GPL-3.0-or-later)
+- Add Enterprise Linux 10 (Rocky Linux 10) autodetection and repository targeting
+- Add Obsoletes and Conflicts for legacy antigravity package (< 1.0.0-13)
+- Symlink /usr/bin/antigravity to /usr/bin/antigravity-ide
+- Update desktop database on install and uninstall
+
 * Wed Jun 24 2026 Steve Rock <steve.rock@marquee-magic.com> - 1.0.0-1
 - Initial lightweight launcher RPM release

@@ -3,7 +3,7 @@ Version:        1.0
 Release:        1%{?dist}
 Summary:        Steve Rock Wheelhouser repository configuration
 
-License:        Proprietary
+License:        GPL-3.0-or-later
 URL:            https://github.com/steve-rock-wheelhouser/fedora-repo
 Source0:        steve-rock-wheelhouser.repo
 Source1:        steve-rock-wheelhouser-gpg.key

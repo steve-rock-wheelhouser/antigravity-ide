@@ -1,5 +1,25 @@
+# Keys, credentials, and sensitive files
+*.key
+*.pem
+*.asc
+*.p12
+*-secret.*
+.env*
+steve-rock-wheelhouser-gpg-secret.key
+
+# Build artifacts & packaging caches
 rpmbuild/
 rpmbuild-release/
 *.rpm
-*.key
-steve-rock-wheelhouser-gpg-secret.key
+*.iso
+build/
+dist/
+target/
+__pycache__/
+*.pyc
+
+# Local editor and workspace caches
+.vscode/
+.idea/
+*.swp
+*~

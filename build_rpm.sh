@@ -23,8 +23,15 @@ RPMBUILD_DIR="$SCRIPT_DIR/rpmbuild"
 SPEC_FILE="$SCRIPT_DIR/antigravity-ide.spec"
 ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-ide-icon.png"
 
+LICENSE_FILE="$SCRIPT_DIR/LICENSE"
+
 if [ ! -f "$ICON_FILE" ]; then
     echo "Error: Cannot find icon at $ICON_FILE. Exiting."
+    exit 1
+fi
+
+if [ ! -f "$LICENSE_FILE" ]; then
+    echo "Error: Cannot find license at $LICENSE_FILE. Exiting."
     exit 1
 fi
 
@@ -54,6 +61,7 @@ mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 echo "Copying sources to rpmbuild directory..."
 cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-ide-icon.png"
+cp "$LICENSE_FILE" "$RPMBUILD_DIR/SOURCES/LICENSE"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
 echo "Building RPM..."

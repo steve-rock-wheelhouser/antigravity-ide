@@ -48,8 +48,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Pre-commit security check: inspect untracked files for sensitive extensions
+SENSITIVE_FILES=$(git status --porcelain | awk '{print $2}' | grep -E '\.(key|pem|asc|p12|env.*)$' || true)
+if [[ -n "${SENSITIVE_FILES}" ]]; then
+    echo "❌ ERROR: Sensitive file(s) detected in repository:"
+    echo "${SENSITIVE_FILES}"
+    echo "Aborting commit to prevent accidental secret leak. Update .gitignore or remove sensitive files."
+    exit 1
+fi
+
 if [[ -z "${COMMIT_MSG}" ]]; then
-    MESSAGE="Update: $(date +'%Y-%m-%d %H:%M:%S')"
+    echo "⚠️ Warning: No commit message provided. Using automated timestamp message."
+    echo "💡 Best Practice (AGENTS.md): Use Conventional Commits, e.g.: ./push.sh \"feat(rpm): add new feature\""
+    MESSAGE="chore: automated sync $(date +'%Y-%m-%d %H:%M:%S')"
 else
     MESSAGE="${COMMIT_MSG}"
 fi
