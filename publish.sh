@@ -93,6 +93,18 @@ if [ -f "${RPM_FILES[0]}" ]; then
     done
 fi
 
+# Clean up legacy antigravity (non-ide) builds in the repository
+LEGACY_RPMS=("$REPO_DIR"/antigravity-[0-9]*.rpm)
+if [ -e "${LEGACY_RPMS[0]}" ]; then
+    echo "Removing legacy antigravity RPMs from $REPO_DIR..."
+    for legacy_rpm in "${LEGACY_RPMS[@]}"; do
+        if [ -f "$legacy_rpm" ]; then
+            echo "Removing legacy build: $(basename "$legacy_rpm")"
+            rm -f "$legacy_rpm"
+        fi
+    done
+fi
+
 # Locate and copy the most recent release RPM build if it exists
 echo "Locating the most recent release RPM build..."
 RELEASE_MATCHES=("$SCRIPT_DIR"/steve-rock-wheelhouser-release-*.rpm)

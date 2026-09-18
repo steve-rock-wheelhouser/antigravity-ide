@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        19%{?dist}
+Release:        20%{?dist}
 Summary:        Antigravity IDE launcher utility
 
 License:        Proprietary
@@ -8,6 +8,11 @@ URL:            https://github.com/steve-rock-wheelhouser/antigravity-ide
 Source0:        antigravity-ide-icon.png
 
 BuildArch:      noarch
+
+# Supersede legacy antigravity package
+Provides:       antigravity = %{version}-%{release}
+Obsoletes:      antigravity <= 1.0.0-12
+Conflicts:      antigravity <= 1.0.0-12
 
 # Runtime dependencies
 Requires:       curl
