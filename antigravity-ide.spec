@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        18%{?dist}
+Release:        19%{?dist}
 Summary:        Antigravity IDE launcher utility
 
 License:        Proprietary
@@ -9,9 +9,25 @@ Source0:        antigravity-ide-icon.png
 
 BuildArch:      noarch
 
+# Runtime dependencies
+Requires:       curl
+Requires:       tar
+Requires:       xdg-utils
+Requires:       desktop-file-utils
+
+# Runtime Electron, audio, and keyring dependencies
+Requires:       alsa-lib
+Requires:       libnotify
+Requires:       libXScrnSaver
+Requires:       libxkbfile
+Requires:       mesa-libgbm
+Requires:       nss
+Requires:       gnome-keyring
+Requires:       libsecret
+
 %description
-Launcher utility for Antigravity IDE on Fedora. It automatically downloads and
-installs the latest version of Antigravity IDE in user-space on first run.
+Launcher utility for Antigravity IDE on Fedora and Enterprise Linux (Rocky Linux 10).
+It automatically downloads and installs the latest version of Antigravity IDE on first run.
 
 %prep
 # Nothing to prep
@@ -34,6 +50,9 @@ exec /usr/share/antigravity-ide/bin/antigravity-ide "$@"
 EOF
 chmod 755 %{buildroot}%{_bindir}/antigravity-ide
 
+# Create convenience symlink /usr/bin/antigravity
+ln -s antigravity-ide %{buildroot}%{_bindir}/antigravity
+
 # Create desktop launcher file
 cat <<EOF > %{buildroot}%{_datadir}/applications/antigravity-ide.desktop
 [Desktop Entry]
@@ -41,10 +60,12 @@ Version=1.0
 Type=Application
 Name=Antigravity IDE
 Comment=Launch Antigravity IDE
-Exec=%{_bindir}/antigravity-ide
+Exec=%{_bindir}/antigravity-ide %u
 Icon=antigravity-ide-icon
 Terminal=false
-Categories=Utility;Development;
+Categories=Development;IDE;Utility;
+MimeType=x-scheme-handler/antigravity;
+StartupWMClass=antigravity
 EOF
 
 %pre
@@ -74,6 +95,18 @@ if curl -sL -o "$TEMP_DIR/Antigravity-IDE.tar.gz" "$URL"; then
         chmod -R u+rwX,go+rX "$INSTALL_DIR"
         chmod +x "$INSTALL_DIR/antigravity-ide"
         chmod +x "$INSTALL_DIR/bin/antigravity-ide"
+
+        # Set root SUID on chrome-sandbox (required on RHEL/Rocky Linux for Chromium sandboxing)
+        if [ -f "$INSTALL_DIR/chrome-sandbox" ]; then
+            chown root:root "$INSTALL_DIR/chrome-sandbox"
+            chmod 4755 "$INSTALL_DIR/chrome-sandbox"
+        fi
+
+        # Update desktop database for the URI scheme and desktop launcher
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database %{_datadir}/applications || true
+        fi
+
         echo "Antigravity IDE payload installed successfully in $INSTALL_DIR."
     else
         echo "Error: Antigravity IDE binary could not be found in the downloaded archive."
@@ -90,9 +123,13 @@ if [ "$1" -eq 0 ]; then
     rm -rf /usr/share/antigravity-ide
 fi
 
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database %{_datadir}/applications || true
+fi
 
 %files
 %{_bindir}/antigravity-ide
+%{_bindir}/antigravity
 %{_datadir}/pixmaps/antigravity-ide-icon.png
 %{_datadir}/applications/antigravity-ide.desktop
 
