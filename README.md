@@ -24,7 +24,7 @@ sudo dnf install -y antigravity-ide
 
 #### Option B: Manual Repository Setup
 ```bash
-sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/steve-rock-wheelhouser-fedora.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
+sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/fedora.repo -o /etc/yum.repos.d/wheelhouser.repo
 sudo dnf install -y antigravity-ide
 ```
 
@@ -40,7 +40,7 @@ sudo dnf install -y antigravity-ide
 
 #### Option B: Manual Repository Setup
 ```bash
-sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/steve-rock-wheelhouser-rocky.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
+sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky.repo -o /etc/yum.repos.d/wheelhouser.repo
 sudo dnf install -y antigravity-ide
 ```
 
