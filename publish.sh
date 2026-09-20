@@ -28,38 +28,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# If target is not explicitly specified, auto-detect from OS
-if [ -z "$TARGET" ]; then
-    if [ -f /etc/os-release ]; then
-        # shellcheck disable=SC1091
-        . /etc/os-release
-        if [[ "${ID:-}" == "rocky" || "${ID_LIKE:-}" =~ rhel ]]; then
-            TARGET="rocky"
-        elif [[ "${ID:-}" == "fedora" ]]; then
-            TARGET="fedora"
-        fi
-    fi
-fi
+REPO_DIR="$(cd "$SCRIPT_DIR/../wheelhouserllc-repo" && pwd)"
 
-# Fallback default if still undetermined
-TARGET="${TARGET:-rocky}"
-
-if [ "$TARGET" == "rocky" ]; then
-    REPO_DIR="$(cd "$SCRIPT_DIR/../rocky-repo" && pwd)"
-    REPO_NAME="Rocky Linux (rocky-repo)"
-elif [ "$TARGET" == "fedora" ]; then
-    REPO_DIR="$(cd "$SCRIPT_DIR/../fedora-repo" && pwd)"
-    REPO_NAME="Fedora (fedora-repo)"
-else
-    echo "Error: Unknown target repository '$TARGET'. Must be 'rocky' or 'fedora'."
+# Verify destination repository exists
+if [ ! -d "$REPO_DIR" ]; then
+    echo "Error: Target repository directory not found at $REPO_DIR"
     exit 1
 fi
 
-echo "Publishing to target repository: $REPO_NAME"
-echo "Repository path: $REPO_DIR"
-
 echo "Locating the most recent Antigravity IDE RPM build..."
-# Find the most recently modified antigravity-ide RPM file in the script directory
 LATEST_RPM=$(ls -t "$SCRIPT_DIR"/antigravity-ide-*.rpm 2>/dev/null | head -n 1)
 
 if [ -z "$LATEST_RPM" ]; then
@@ -71,31 +48,53 @@ fi
 RPM_FILENAME=$(basename "$LATEST_RPM")
 echo "Found most recent build: $RPM_FILENAME"
 
-# Verify destination repository exists
-if [ ! -d "$REPO_DIR" ]; then
-    echo "Error: Target repository directory not found at $REPO_DIR"
-    exit 1
-fi
-
-# Detect release major version and architecture from RPM headers
+# Detect release major version, distro tag, and architecture from RPM headers
 RPM_RELEASE=$(rpm -qp --queryformat '%{RELEASE}' "$LATEST_RPM" 2>/dev/null || true)
 RPM_ARCH=$(rpm -qp --queryformat '%{ARCH}' "$LATEST_RPM" 2>/dev/null || true)
+
+DISTRO_TAG=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)' || true)
 DISTRO_VER=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)[0-9]+' | sed -E 's/^(el|fc)//' || true)
 
+if [ -n "$TARGET" ]; then
+    DISTRO_NAME="$TARGET"
+elif [ "$DISTRO_TAG" == "el" ]; then
+    DISTRO_NAME="rocky"
+elif [ "$DISTRO_TAG" == "fc" ]; then
+    DISTRO_NAME="fedora"
+else
+    # Auto-detect from host OS
+    if [ -f /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        if [[ "${ID:-}" == "rocky" || "${ID_LIKE:-}" =~ rhel ]]; then
+            DISTRO_NAME="rocky"
+        elif [[ "${ID:-}" == "fedora" ]]; then
+            DISTRO_NAME="fedora"
+        else
+            DISTRO_NAME="rocky"
+        fi
+    else
+        DISTRO_NAME="rocky"
+    fi
+fi
+
 if [ -z "$DISTRO_VER" ]; then
-    if [ "$TARGET" == "rocky" ]; then
+    if [ "$DISTRO_NAME" == "rocky" ]; then
         DISTRO_VER="10"
     else
         DISTRO_VER="44"
     fi
 fi
 
-# Determine target subtrees (e.g., 10/x86_64 and 10/aarch64 for noarch packages)
+echo "Target Distribution: $DISTRO_NAME (Release $DISTRO_VER)"
+echo "Repository path: $REPO_DIR"
+
+# Determine target subtrees (e.g., rocky/10/x86_64 and rocky/10/aarch64 for noarch packages)
 TARGET_SUBDIRS=()
 if [ "$RPM_ARCH" == "noarch" ]; then
-    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_VER/x86_64" "$REPO_DIR/$DISTRO_VER/aarch64")
+    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/x86_64" "$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/aarch64")
 else
-    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_VER/$RPM_ARCH")
+    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/$RPM_ARCH")
 fi
 
 echo "Routing package to target subtrees (${TARGET_SUBDIRS[*]}):"
@@ -121,14 +120,21 @@ done
 find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || true
 
 # Locate and copy the most recent release RPM build if it exists
-echo "Locating the most recent release RPM build..."
-RELEASE_MATCHES=("$SCRIPT_DIR"/steve-rock-wheelhouser-release-*.rpm)
+echo "Locating the most recent release RPM build for $DISTRO_NAME..."
+RELEASE_FILTER=""
+if [ "$DISTRO_NAME" == "rocky" ]; then
+    RELEASE_FILTER="*el*.rpm"
+elif [ "$DISTRO_NAME" == "fedora" ]; then
+    RELEASE_FILTER="*fc*.rpm"
+fi
+
+RELEASE_MATCHES=("$SCRIPT_DIR"/steve-rock-wheelhouser-release-$RELEASE_FILTER)
 if [ -e "${RELEASE_MATCHES[0]}" ]; then
     LATEST_RELEASE_RPM=$(ls -t "${RELEASE_MATCHES[@]}" | head -n 1)
     RELEASE_FILENAME=$(basename "$LATEST_RELEASE_RPM")
     echo "Found most recent release build: $RELEASE_FILENAME"
     
-    # Copy the new release build to each active subtree and to repo root for bootstrap curl
+    # Copy the new release build to each active subtree
     for dest_dir in "${TARGET_SUBDIRS[@]}"; do
         echo "Copying $RELEASE_FILENAME to $dest_dir..."
         cp "$LATEST_RELEASE_RPM" "$dest_dir/"
@@ -144,12 +150,11 @@ if [ -e "${RELEASE_MATCHES[0]}" ]; then
         fi
     done
 
-    # Retain a root-level copy for bootstrap curl commands
+    # Retain a root-level copy for bootstrap curl commands if applicable
     cp "$LATEST_RELEASE_RPM" "$REPO_DIR/"
 else
-    echo "No release RPM build found in $SCRIPT_DIR. Skipping release RPM publishing."
+    echo "No matching release RPM build found in $SCRIPT_DIR. Skipping release RPM publishing."
 fi
-
 
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
 if [ -f "$REPO_DIR/update_repo.sh" ]; then

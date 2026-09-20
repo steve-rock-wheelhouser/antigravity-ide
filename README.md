@@ -1,8 +1,7 @@
 # Antigravity IDE Linux Packaging & Launcher Utility
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Fedora Repo](https://img.shields.io/badge/Fedora-DNF%20Repo-294172?style=flat&logo=fedora&logoColor=white)](https://github.com/steve-rock-wheelhouser/fedora-repo)
-[![Rocky Linux Repo](https://img.shields.io/badge/Rocky%20Linux-DNF%20Repo-10B981?style=flat&logo=rockylinux&logoColor=white)](https://github.com/steve-rock-wheelhouser/rocky-repo)
+[![RPM Repo](https://img.shields.io/badge/Wheelhouser%20LLC-DNF%20Repo-294172?style=flat&logo=redhat&logoColor=white)](https://github.com/steve-rock-wheelhouser/wheelhouserllc-repo)
 
 This repository provides open-source RPM packaging, build automation, desktop environment integration, and launcher tooling for **Google Antigravity IDE** on Red Hat Enterprise Linux derivatives (including **Rocky Linux 10**) and **Fedora**.
 
@@ -19,13 +18,13 @@ You can install `antigravity-ide` via our public DNF repositories on either **Fe
 #### Option A: Install via Bootstrap RPM (Recommended)
 This installs the repository configuration and imports our GPG signing key automatically:
 ```bash
-sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/fedora-repo/main/steve-rock-wheelhouser-release-1.0-1.fc44.noarch.rpm
+sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/fedora/44/x86_64/steve-rock-wheelhouser-release-1.0-3.fc44.noarch.rpm
 sudo dnf install -y antigravity-ide
 ```
 
 #### Option B: Manual Repository Setup
 ```bash
-sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/fedora-repo/main/steve-rock-wheelhouser.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
+sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/steve-rock-wheelhouser-fedora.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
 sudo dnf install -y antigravity-ide
 ```
 
@@ -35,13 +34,13 @@ sudo dnf install -y antigravity-ide
 
 #### Option A: Install via Bootstrap RPM (Recommended)
 ```bash
-sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/rocky-repo/main/steve-rock-wheelhouser-release-1.0-1.el10.noarch.rpm
+sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky/10/x86_64/steve-rock-wheelhouser-release-1.0-3.el10.noarch.rpm
 sudo dnf install -y antigravity-ide
 ```
 
 #### Option B: Manual Repository Setup
 ```bash
-sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/rocky-repo/main/steve-rock-wheelhouser.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
+sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/steve-rock-wheelhouser-rocky.repo -o /etc/yum.repos.d/steve-rock-wheelhouser.repo
 sudo dnf install -y antigravity-ide
 ```
 

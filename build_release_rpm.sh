@@ -41,27 +41,30 @@ if [ -z "$TARGET" ]; then
 fi
 
 TARGET="${TARGET:-rocky}"
+REPO_DIR="$(cd "$SCRIPT_DIR/../wheelhouserllc-repo" && pwd)"
 
 if [ "$TARGET" == "rocky" ]; then
-    REPO_DIR="$(cd "$SCRIPT_DIR/../rocky-repo" && pwd)"
-    REPO_NAME="Rocky Linux (rocky-repo)"
+    REPO_NAME="Rocky Linux (rocky)"
+    MACRO_DEFINE='--define "rhel 10" --define "dist .el10"'
 elif [ "$TARGET" == "fedora" ]; then
-    REPO_DIR="$(cd "$SCRIPT_DIR/../fedora-repo" && pwd)"
-    REPO_NAME="Fedora (fedora-repo)"
+    REPO_NAME="Fedora (fedora)"
+    MACRO_DEFINE='--define "fedora 44" --define "dist .fc44"'
 else
     echo "Error: Unknown target repository '$TARGET'. Must be 'rocky' or 'fedora'."
     exit 1
 fi
 
 echo "Building release RPM for: $REPO_NAME"
+echo "Repository path: $REPO_DIR"
 
 RPMBUILD_DIR="$SCRIPT_DIR/rpmbuild-release"
 SPEC_FILE="$SCRIPT_DIR/steve-rock-wheelhouser-release.spec"
-REPO_FILE="$REPO_DIR/steve-rock-wheelhouser.repo"
+ROCKY_REPO_FILE="$REPO_DIR/steve-rock-wheelhouser-rocky.repo"
+FEDORA_REPO_FILE="$REPO_DIR/steve-rock-wheelhouser-fedora.repo"
 GPG_KEY="$REPO_DIR/steve-rock-wheelhouser-gpg.key"
 
 # Verify files exist
-for file in "$SPEC_FILE" "$REPO_FILE" "$GPG_KEY"; do
+for file in "$SPEC_FILE" "$ROCKY_REPO_FILE" "$FEDORA_REPO_FILE" "$GPG_KEY"; do
     if [ ! -f "$file" ]; then
         echo "Error: Required file not found: $file"
         exit 1
@@ -73,12 +76,13 @@ rm -rf "$RPMBUILD_DIR"
 mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 echo "Copying sources..."
-cp "$REPO_FILE" "$RPMBUILD_DIR/SOURCES/steve-rock-wheelhouser.repo"
+cp "$ROCKY_REPO_FILE" "$RPMBUILD_DIR/SOURCES/steve-rock-wheelhouser-rocky.repo"
+cp "$FEDORA_REPO_FILE" "$RPMBUILD_DIR/SOURCES/steve-rock-wheelhouser-fedora.repo"
 cp "$GPG_KEY" "$RPMBUILD_DIR/SOURCES/steve-rock-wheelhouser-gpg.key"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/steve-rock-wheelhouser-release.spec"
 
 echo "Building release RPM..."
-rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/steve-rock-wheelhouser-release.spec"
+eval rpmbuild --define \"_topdir $RPMBUILD_DIR\" "$MACRO_DEFINE" -ba \"$RPMBUILD_DIR/SPECS/steve-rock-wheelhouser-release.spec\"
 
 echo "Signing built release RPMs..."
 rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
