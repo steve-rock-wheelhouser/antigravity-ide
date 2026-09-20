@@ -121,7 +121,10 @@ find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || t
 
 
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
-if [ -f "$SCRIPT_DIR/../scripts/update_repo.sh" ]; then
+if [ -f "$SCRIPT_DIR/../wheelhouserllc-repo-scripts/update_repo.sh" ]; then
+    echo "Running ../wheelhouserllc-repo-scripts/update_repo.sh on $REPO_DIR..."
+    "$SCRIPT_DIR/../wheelhouserllc-repo-scripts/update_repo.sh" "$REPO_DIR"
+elif [ -f "$SCRIPT_DIR/../scripts/update_repo.sh" ]; then
     echo "Running ../scripts/update_repo.sh on $REPO_DIR..."
     "$SCRIPT_DIR/../scripts/update_repo.sh" "$REPO_DIR"
 elif [ -f "$REPO_DIR/scripts/update_repo.sh" ]; then
@@ -131,7 +134,7 @@ elif [ -f "$REPO_DIR/update_repo.sh" ]; then
     echo "Running update_repo.sh in $REPO_DIR..."
     (cd "$REPO_DIR" && ./update_repo.sh)
 else
-    echo "Error: update_repo.sh not found (checked ../scripts/update_repo.sh and $REPO_DIR)"
+    echo "Error: update_repo.sh not found (checked ../wheelhouserllc-repo-scripts/update_repo.sh and $REPO_DIR)"
     exit 1
 fi
 

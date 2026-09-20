@@ -76,9 +76,9 @@ To build the application RPM (automatically increments the spec's `Release` vers
 ```
 
 ### Build the Release Configuration RPM
-The distribution release configuration RPM (`steve-rock-wheelhouser-release`) can be built using the workspace maintainer script:
+The distribution release configuration RPM (`steve-rock-wheelhouser-release`) can be built using the maintainer script in `wheelhouserllc-repo-scripts`:
 ```bash
-../scripts/build_release_rpm.sh [--target rocky|fedora]
+../wheelhouserllc-repo-scripts/build_release_rpm.sh [--target rocky|fedora]
 ```
 *(If `--target` is omitted, the script automatically detects your running distribution via `/etc/os-release`).*
 
