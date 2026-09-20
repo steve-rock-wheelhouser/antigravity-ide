@@ -77,33 +77,48 @@ if [ ! -d "$REPO_DIR" ]; then
     exit 1
 fi
 
-# Copy the new build to the repository
-echo "Copying $RPM_FILENAME to $REPO_DIR..."
-cp "$LATEST_RPM" "$REPO_DIR/"
+# Detect release major version and architecture from RPM headers
+RPM_RELEASE=$(rpm -qp --queryformat '%{RELEASE}' "$LATEST_RPM" 2>/dev/null || true)
+RPM_ARCH=$(rpm -qp --queryformat '%{ARCH}' "$LATEST_RPM" 2>/dev/null || true)
+DISTRO_VER=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)[0-9]+' | sed -E 's/^(el|fc)//' || true)
 
-# Clean up older antigravity-ide builds in the repository, keeping only the 2 most recent ones
-echo "Cleaning up old Antigravity IDE builds in $REPO_DIR (keeping only the 2 most recent)..."
-RPM_FILES=("$REPO_DIR"/antigravity-ide-*.rpm)
-if [ -f "${RPM_FILES[0]}" ]; then
-    ls -t "${RPM_FILES[@]}" 2>/dev/null | tail -n +3 | while read -r old_rpm; do
-        if [ -f "$old_rpm" ]; then
-            echo "Removing older build: $(basename "$old_rpm")"
-            rm -f "$old_rpm"
-        fi
-    done
+if [ -z "$DISTRO_VER" ]; then
+    if [ "$TARGET" == "rocky" ]; then
+        DISTRO_VER="10"
+    else
+        DISTRO_VER="44"
+    fi
 fi
 
-# Clean up legacy antigravity (non-ide) builds in the repository
-LEGACY_RPMS=("$REPO_DIR"/antigravity-[0-9]*.rpm)
-if [ -e "${LEGACY_RPMS[0]}" ]; then
-    echo "Removing legacy antigravity RPMs from $REPO_DIR..."
-    for legacy_rpm in "${LEGACY_RPMS[@]}"; do
-        if [ -f "$legacy_rpm" ]; then
-            echo "Removing legacy build: $(basename "$legacy_rpm")"
-            rm -f "$legacy_rpm"
-        fi
-    done
+# Determine target subtrees (e.g., 10/x86_64 and 10/aarch64 for noarch packages)
+TARGET_SUBDIRS=()
+if [ "$RPM_ARCH" == "noarch" ]; then
+    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_VER/x86_64" "$REPO_DIR/$DISTRO_VER/aarch64")
+else
+    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_VER/$RPM_ARCH")
 fi
+
+echo "Routing package to target subtrees (${TARGET_SUBDIRS[*]}):"
+
+for dest_dir in "${TARGET_SUBDIRS[@]}"; do
+    mkdir -p "$dest_dir"
+    echo "Copying $RPM_FILENAME to $dest_dir..."
+    cp "$LATEST_RPM" "$dest_dir/"
+
+    # Clean up older antigravity-ide builds in this specific subtree (keeping only the 2 most recent)
+    RPM_FILES=("$dest_dir"/antigravity-ide-*.rpm)
+    if [ -f "${RPM_FILES[0]}" ]; then
+        ls -t "${RPM_FILES[@]}" 2>/dev/null | tail -n +3 | while read -r old_rpm; do
+            if [ -f "$old_rpm" ]; then
+                echo "Removing older build: $(basename "$old_rpm") from $dest_dir"
+                rm -f "$old_rpm"
+            fi
+        done
+    fi
+done
+
+# Clean up legacy antigravity (non-ide) builds across the repository
+find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || true
 
 # Locate and copy the most recent release RPM build if it exists
 echo "Locating the most recent release RPM build..."
@@ -113,21 +128,24 @@ if [ -e "${RELEASE_MATCHES[0]}" ]; then
     RELEASE_FILENAME=$(basename "$LATEST_RELEASE_RPM")
     echo "Found most recent release build: $RELEASE_FILENAME"
     
-    # Copy the new release build to the repository
-    echo "Copying $RELEASE_FILENAME to $REPO_DIR..."
+    # Copy the new release build to each active subtree and to repo root for bootstrap curl
+    for dest_dir in "${TARGET_SUBDIRS[@]}"; do
+        echo "Copying $RELEASE_FILENAME to $dest_dir..."
+        cp "$LATEST_RELEASE_RPM" "$dest_dir/"
+        
+        # Clean up older release builds in this subtree (keeping only the most recent)
+        RELEASE_FILES=("$dest_dir"/steve-rock-wheelhouser-release-*.rpm)
+        if [ -f "${RELEASE_FILES[0]}" ]; then
+            ls -t "${RELEASE_FILES[@]}" 2>/dev/null | tail -n +2 | while read -r old_rpm; do
+                if [ -f "$old_rpm" ]; then
+                    rm -f "$old_rpm"
+                fi
+            done
+        fi
+    done
+
+    # Retain a root-level copy for bootstrap curl commands
     cp "$LATEST_RELEASE_RPM" "$REPO_DIR/"
-    
-    # Clean up older release builds in the repository, keeping only the 1 most recent one
-    echo "Cleaning up old release builds in $REPO_DIR (keeping only the most recent)..."
-    RELEASE_FILES=("$REPO_DIR"/steve-rock-wheelhouser-release-*.rpm)
-    if [ -f "${RELEASE_FILES[0]}" ]; then
-        ls -t "${RELEASE_FILES[@]}" 2>/dev/null | tail -n +2 | while read -r old_rpm; do
-            if [ -f "$old_rpm" ]; then
-                echo "Removing older release build: $(basename "$old_rpm")"
-                rm -f "$old_rpm"
-            fi
-        done
-    fi
 else
     echo "No release RPM build found in $SCRIPT_DIR. Skipping release RPM publishing."
 fi
