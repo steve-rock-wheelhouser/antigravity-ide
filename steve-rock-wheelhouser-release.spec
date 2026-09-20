@@ -1,6 +1,6 @@
 Name:           steve-rock-wheelhouser-release
 Version:        1.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Steve Rock Wheelhouser repository configuration
 
 License:        GPL-3.0-or-later
@@ -33,5 +33,8 @@ cp %{SOURCE1} %{buildroot}%{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-steve-rock-whee
 %{_sysconfdir}/pki/rpm-gpg/RPM-GPG-KEY-steve-rock-wheelhouser
 
 %changelog
+* Sun Sep 20 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0-2
+- Update repository baseurl to use dynamic $releasever/$basearch variables
+
 * Wed Jun 24 2026 Steve Rock <steve.rock@marquee-magic.com> - 1.0-1
 - Initial repository release package
