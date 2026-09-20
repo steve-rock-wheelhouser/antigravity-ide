@@ -119,42 +119,6 @@ done
 # Clean up legacy antigravity (non-ide) builds across the repository
 find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || true
 
-# Locate and copy the most recent release RPM build if it exists
-echo "Locating the most recent release RPM build for $DISTRO_NAME..."
-RELEASE_FILTER=""
-if [ "$DISTRO_NAME" == "rocky" ]; then
-    RELEASE_FILTER="*el*.rpm"
-elif [ "$DISTRO_NAME" == "fedora" ]; then
-    RELEASE_FILTER="*fc*.rpm"
-fi
-
-RELEASE_MATCHES=("$SCRIPT_DIR"/steve-rock-wheelhouser-release-$RELEASE_FILTER)
-if [ -e "${RELEASE_MATCHES[0]}" ]; then
-    LATEST_RELEASE_RPM=$(ls -t "${RELEASE_MATCHES[@]}" | head -n 1)
-    RELEASE_FILENAME=$(basename "$LATEST_RELEASE_RPM")
-    echo "Found most recent release build: $RELEASE_FILENAME"
-    
-    # Copy the new release build to each active subtree
-    for dest_dir in "${TARGET_SUBDIRS[@]}"; do
-        echo "Copying $RELEASE_FILENAME to $dest_dir..."
-        cp "$LATEST_RELEASE_RPM" "$dest_dir/"
-        
-        # Clean up older release builds in this subtree (keeping only the most recent)
-        RELEASE_FILES=("$dest_dir"/steve-rock-wheelhouser-release-*.rpm)
-        if [ -f "${RELEASE_FILES[0]}" ]; then
-            ls -t "${RELEASE_FILES[@]}" 2>/dev/null | tail -n +2 | while read -r old_rpm; do
-                if [ -f "$old_rpm" ]; then
-                    rm -f "$old_rpm"
-                fi
-            done
-        fi
-    done
-
-    # Retain a root-level copy for bootstrap curl commands if applicable
-    cp "$LATEST_RELEASE_RPM" "$REPO_DIR/"
-else
-    echo "No matching release RPM build found in $SCRIPT_DIR. Skipping release RPM publishing."
-fi
 
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
 if [ -f "$REPO_DIR/update_repo.sh" ]; then

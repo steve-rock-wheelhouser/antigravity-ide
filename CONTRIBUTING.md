@@ -28,10 +28,6 @@ sudo dnf install -y rpm-build rpm-sign createrepo_c git
    ```bash
    ./build_rpm.sh
    ```
-3. **Build the Release Bootstrap Package**:
-   ```bash
-   ./build_release_rpm.sh --target [fedora|rocky]
-   ```
 
 ---
 
