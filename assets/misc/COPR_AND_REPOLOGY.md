@@ -48,12 +48,12 @@ sudo dnf install antigravity-ide
 Repology tracks version availability across all Linux distributions and repositories. Registering your repo makes your utilities searchable by the wider Linux community.
 
 ### Step 1: Submit Your Repository
-To add your custom repository (`steve-rock-wheelhouser/fedora-repo`) to Repology:
+To add your custom repository (`steve-rock-wheelhouser/wheelhouserllc-repo`) to Repology:
 1. Go to the [Repology Submit Page](https://repology.org/repository/new).
 2. Fill out the request form:
    * **Repository Type**: `yum`
-   * **Repository URL**: `https://raw.githubusercontent.com/steve-rock-wheelhouser/fedora-repo/main/`
-   * **Repository Name**: `steve-rock-wheelhouser`
+   * **Repository URL**: `https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/fedora/`
+   * **Repository Name**: `wheelhouser`
    * **Distribution**: `Fedora` (or `Fedora/Third party`)
 3. Alternatively, you can open a Pull Request against the [Repology Rules repository on GitHub](https://github.com/repology/repology-rules) to add your YUM repository definition to their parser configs.
 

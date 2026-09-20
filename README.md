@@ -34,7 +34,7 @@ sudo dnf install -y antigravity-ide
 
 #### Option A: Install via Bootstrap RPM (Recommended)
 ```bash
-sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky/10/x86_64/steve-rock-wheelhouser-release-1.0-3.el10.noarch.rpm
+sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky/10/x86_64/steve-rock-wheelhouser-release-1.0-4.el10.noarch.rpm
 sudo dnf install -y antigravity-ide
 ```
 

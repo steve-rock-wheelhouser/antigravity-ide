@@ -26,7 +26,7 @@ Reddit has a large and active developer base running Fedora Workstation.
   - **Title Idea**: *Automated Google Antigravity IDE installer for Fedora (custom YUM repo)*
   - **Body**: Show the bootstrap command:
     ```bash
-    sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/fedora-repo/main/steve-rock-wheelhouser-release-1.0-1.fc44.noarch.rpm
+    sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/fedora/44/x86_64/steve-rock-wheelhouser-release-1.0-3.fc44.noarch.rpm
     sudo dnf install antigravity-ide
     ```
 
@@ -34,11 +34,11 @@ Reddit has a large and active developer base running Fedora Workstation.
 
 ## 3. GitHub README Badges
 
-Add a badge at the top of your `steve-rock-wheelhouser/antigravity-ide` repository's `README.md` to guide Fedora users:
+Add a badge at the top of your `steve-rock-wheelhouser/antigravity-ide` repository's `README.md` to guide users:
 
 * **Markdown Code**:
   ```markdown
-  [![Fedora Repo](https://img.shields.io/badge/Fedora-DNF%20Repo-blue?style=flat&logo=fedora)](https://github.com/steve-rock-wheelhouser/fedora-repo)
+  [![RPM Repo](https://img.shields.io/badge/Wheelhouser%20LLC-DNF%20Repo-294172?style=flat&logo=redhat&logoColor=white)](https://github.com/steve-rock-wheelhouser/wheelhouserllc-repo)
   ```
 * This renders a clean badge linking directly to your custom repository instructions.
 
