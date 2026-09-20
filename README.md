@@ -76,9 +76,9 @@ To build the application RPM (automatically increments the spec's `Release` vers
 ```
 
 ### Build the Release Configuration RPM
-To build the distribution release RPM containing the repository configuration and GPG key:
+The distribution release configuration RPM (`steve-rock-wheelhouser-release`) is maintained in the [wheelhouserllc-repo](https://github.com/steve-rock-wheelhouser/wheelhouserllc-repo) repository. To build it:
 ```bash
-./build_release_rpm.sh [--target rocky|fedora]
+../wheelhouserllc-repo/scripts/build_release_rpm.sh [--target rocky|fedora]
 ```
 *(If `--target` is omitted, the script automatically detects your running distribution via `/etc/os-release`).*
 

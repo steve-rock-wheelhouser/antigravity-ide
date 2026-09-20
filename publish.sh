@@ -121,7 +121,10 @@ find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || t
 
 
 # Run the repository update script (which signs, rebuilds metadata, commits and pushes)
-if [ -f "$REPO_DIR/update_repo.sh" ]; then
+if [ -f "$REPO_DIR/scripts/update_repo.sh" ]; then
+    echo "Running scripts/update_repo.sh in $REPO_DIR..."
+    "$REPO_DIR/scripts/update_repo.sh"
+elif [ -f "$REPO_DIR/update_repo.sh" ]; then
     echo "Running update_repo.sh in $REPO_DIR..."
     (cd "$REPO_DIR" && ./update_repo.sh)
 else
