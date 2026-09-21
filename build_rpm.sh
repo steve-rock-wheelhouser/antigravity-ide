@@ -41,10 +41,20 @@ if [ ! -f "$SPEC_FILE" ]; then
 fi
 
 NO_BUMP=false
+TARGET="all"
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --no-bump)
             NO_BUMP=true
+            shift
+            ;;
+        --target|-t)
+            TARGET="$2"
+            shift 2
+            ;;
+        --all)
+            TARGET="all"
             shift
             ;;
         -h|--help)
@@ -85,14 +95,25 @@ cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-ide-icon.png"
 cp "$LICENSE_FILE" "$RPMBUILD_DIR/SOURCES/LICENSE"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
-echo "Building RPM..."
-rpmbuild --define "_topdir $RPMBUILD_DIR" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
+echo "Building RPM package(s) for target: $TARGET..."
+if [[ "$TARGET" == "all" ]]; then
+    echo "--> Building Enterprise Linux 10 RPM (Rocky 10 / AlmaLinux 10)..."
+    rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .el10" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
+    echo "--> Building Fedora 44 RPM..."
+    rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .fc44" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
+elif [[ "$TARGET" == "fedora" ]]; then
+    echo "--> Building Fedora 44 RPM..."
+    rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .fc44" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
+else
+    echo "--> Building Enterprise Linux 10 RPM ($TARGET)..."
+    rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .el10" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
+fi
 
 echo "Signing built RPMs..."
 rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
 
 echo "Copying built RPMs to workspace root..."
-cp "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
+cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
 
 echo "--------------------------------------------------"
 echo "RPM build complete!"

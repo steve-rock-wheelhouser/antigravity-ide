@@ -9,20 +9,24 @@ cd "$SCRIPT_DIR"
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin:${PATH:-}"
 
 # Parse command line options
-TARGET=""
+TARGET="all"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --target|-t)
             TARGET="$2"
             shift 2
             ;;
+        --all)
+            TARGET="all"
+            shift
+            ;;
         --help|-h)
-            echo "Usage: $(basename "$0") [--target rocky|fedora]"
+            echo "Usage: $(basename "$0") [--target rocky|almalinux|fedora|all]"
             exit 0
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $(basename "$0") [--target rocky|fedora]"
+            echo "Usage: $(basename "$0") [--target rocky|almalinux|fedora|all]"
             exit 1
             ;;
     esac
@@ -36,88 +40,81 @@ if [ ! -d "$REPO_DIR" ]; then
     exit 1
 fi
 
-echo "Locating the most recent Antigravity IDE RPM build..."
-LATEST_RPM=$(ls -t "$SCRIPT_DIR"/antigravity-ide-*.rpm 2>/dev/null | head -n 1)
-
-if [ -z "$LATEST_RPM" ]; then
-    echo "Error: No Antigravity IDE RPM build found in $SCRIPT_DIR."
-    echo "Please run ./build_rpm.sh first."
-    exit 1
-fi
-
-RPM_FILENAME=$(basename "$LATEST_RPM")
-echo "Found most recent build: $RPM_FILENAME"
-
-# Detect release major version, distro tag, and architecture from RPM headers
-RPM_RELEASE=$(rpm -qp --queryformat '%{RELEASE}' "$LATEST_RPM" 2>/dev/null || true)
-RPM_ARCH=$(rpm -qp --queryformat '%{ARCH}' "$LATEST_RPM" 2>/dev/null || true)
-
-DISTRO_TAG=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)' || true)
-DISTRO_VER=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)[0-9]+' | sed -E 's/^(el|fc)//' || true)
-
-if [ -n "$TARGET" ]; then
-    DISTRO_NAME="$TARGET"
-elif [ -f /etc/os-release ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    if [[ "${ID:-}" == "almalinux" ]]; then
-        DISTRO_NAME="almalinux"
-    elif [[ "${ID:-}" == "rocky" ]]; then
-        DISTRO_NAME="rocky"
-    elif [[ "${ID:-}" == "fedora" ]]; then
-        DISTRO_NAME="fedora"
-    elif [ "$DISTRO_TAG" == "el" ]; then
-        DISTRO_NAME="rocky"
-    elif [ "$DISTRO_TAG" == "fc" ]; then
-        DISTRO_NAME="fedora"
-    else
-        DISTRO_NAME="rocky"
-    fi
-elif [ "$DISTRO_TAG" == "el" ]; then
-    DISTRO_NAME="rocky"
-elif [ "$DISTRO_TAG" == "fc" ]; then
-    DISTRO_NAME="fedora"
-else
-    DISTRO_NAME="rocky"
-fi
-
-if [ -z "$DISTRO_VER" ]; then
-    if [[ "$DISTRO_NAME" == "rocky" || "$DISTRO_NAME" == "almalinux" ]]; then
-        DISTRO_VER="10"
-    else
-        DISTRO_VER="44"
-    fi
-fi
-
-echo "Target Distribution: $DISTRO_NAME (Release $DISTRO_VER)"
-echo "Repository path: $REPO_DIR"
-
-# Determine target subtrees (e.g., rocky/10/x86_64 and rocky/10/aarch64 for noarch packages)
-TARGET_SUBDIRS=()
-if [ "$RPM_ARCH" == "noarch" ]; then
-    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/x86_64" "$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/aarch64")
-else
-    TARGET_SUBDIRS=("$REPO_DIR/$DISTRO_NAME/$DISTRO_VER/$RPM_ARCH")
-fi
-
-echo "Routing package to target subtrees (${TARGET_SUBDIRS[*]}):"
-
-for dest_dir in "${TARGET_SUBDIRS[@]}"; do
-    mkdir -p "$dest_dir"
-    echo "Copying $RPM_FILENAME to $dest_dir..."
-    cp "$LATEST_RPM" "$dest_dir/"
-
-    # Clean up older antigravity-ide builds in this specific subtree (keeping only the 2 most recent)
-    RPM_FILES=("$dest_dir"/antigravity-ide-*.rpm)
-    if [ -f "${RPM_FILES[0]}" ]; then
-        ls -t "${RPM_FILES[@]}" 2>/dev/null | tail -n +3 | while read -r old_rpm; do
+clean_old_rpms() {
+    local target_dir="$1"
+    local rpm_files=("$target_dir"/antigravity-ide-*.rpm)
+    if [ -f "${rpm_files[0]}" ]; then
+        ls -t "${rpm_files[@]}" 2>/dev/null | tail -n +3 | while read -r old_rpm; do
             if [ -f "$old_rpm" ]; then
-                echo "Removing older build: $(basename "$old_rpm") from $dest_dir"
+                echo "Removing older build: $(basename "$old_rpm") from $target_dir"
                 rm -f "$old_rpm"
             fi
         done
     fi
-done
+}
+
+deploy_package() {
+    local rpm_path="$1"
+    local distro_name="$2"
+    local distro_ver="$3"
+    local rpm_arch
+    rpm_arch="$(rpm -qp --queryformat '%{ARCH}' "$rpm_path" 2>/dev/null || echo "noarch")"
+    local rpm_fname
+    rpm_fname="$(basename "$rpm_path")"
+
+    local subdirs=()
+    if [ "$rpm_arch" == "noarch" ]; then
+        subdirs=("$REPO_DIR/$distro_name/$distro_ver/x86_64" "$REPO_DIR/$distro_name/$distro_ver/aarch64")
+    else
+        subdirs=("$REPO_DIR/$distro_name/$distro_ver/$rpm_arch")
+    fi
+
+    for d in "${subdirs[@]}"; do
+        mkdir -p "$d"
+        echo "Copying $rpm_fname to $d/..."
+        cp -f "$rpm_path" "$d/"
+        clean_old_rpms "$d"
+    done
+}
+
+LATEST_EL_RPM=$(ls -t "$SCRIPT_DIR"/antigravity-ide-*el*.rpm 2>/dev/null | head -n 1)
+LATEST_FC_RPM=$(ls -t "$SCRIPT_DIR"/antigravity-ide-*fc*.rpm 2>/dev/null | head -n 1)
+
+if [[ "$TARGET" == "all" ]]; then
+    echo "Publishing Antigravity IDE across all supported distributions..."
+    if [ -n "$LATEST_EL_RPM" ] && [ -f "$LATEST_EL_RPM" ]; then
+        echo "Found Enterprise Linux RPM: $(basename "$LATEST_EL_RPM")"
+        deploy_package "$LATEST_EL_RPM" "rocky" "10"
+        deploy_package "$LATEST_EL_RPM" "almalinux" "10"
+    else
+        echo "Warning: No Enterprise Linux 10 RPM found in $SCRIPT_DIR."
+    fi
+
+    if [ -n "$LATEST_FC_RPM" ] && [ -f "$LATEST_FC_RPM" ]; then
+        echo "Found Fedora RPM: $(basename "$LATEST_FC_RPM")"
+        deploy_package "$LATEST_FC_RPM" "fedora" "44"
+    else
+        echo "Warning: No Fedora RPM found in $SCRIPT_DIR."
+    fi
+elif [[ "$TARGET" == "fedora" ]]; then
+    if [ -z "$LATEST_FC_RPM" ]; then
+        echo "Error: No Fedora RPM found in $SCRIPT_DIR."
+        exit 1
+    fi
+    deploy_package "$LATEST_FC_RPM" "fedora" "44"
+elif [[ "$TARGET" == "almalinux" ]]; then
+    if [ -z "$LATEST_EL_RPM" ]; then
+        echo "Error: No Enterprise Linux RPM found in $SCRIPT_DIR."
+        exit 1
+    fi
+    deploy_package "$LATEST_EL_RPM" "almalinux" "10"
+elif [[ "$TARGET" == "rocky" ]]; then
+    if [ -z "$LATEST_EL_RPM" ]; then
+        echo "Error: No Enterprise Linux RPM found in $SCRIPT_DIR."
+        exit 1
+    fi
+    deploy_package "$LATEST_EL_RPM" "rocky" "10"
+fi
 
 # Clean up legacy antigravity (non-ide) builds across the repository
 find "$REPO_DIR" -type f -name "antigravity-[0-9]*.rpm" -delete 2>/dev/null || true
