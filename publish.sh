@@ -57,29 +57,32 @@ DISTRO_VER=$(echo "$RPM_RELEASE" | grep -oE '(el|fc)[0-9]+' | sed -E 's/^(el|fc)
 
 if [ -n "$TARGET" ]; then
     DISTRO_NAME="$TARGET"
+elif [ -f /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    if [[ "${ID:-}" == "almalinux" ]]; then
+        DISTRO_NAME="almalinux"
+    elif [[ "${ID:-}" == "rocky" ]]; then
+        DISTRO_NAME="rocky"
+    elif [[ "${ID:-}" == "fedora" ]]; then
+        DISTRO_NAME="fedora"
+    elif [ "$DISTRO_TAG" == "el" ]; then
+        DISTRO_NAME="rocky"
+    elif [ "$DISTRO_TAG" == "fc" ]; then
+        DISTRO_NAME="fedora"
+    else
+        DISTRO_NAME="rocky"
+    fi
 elif [ "$DISTRO_TAG" == "el" ]; then
     DISTRO_NAME="rocky"
 elif [ "$DISTRO_TAG" == "fc" ]; then
     DISTRO_NAME="fedora"
 else
-    # Auto-detect from host OS
-    if [ -f /etc/os-release ]; then
-        # shellcheck disable=SC1091
-        . /etc/os-release
-        if [[ "${ID:-}" == "rocky" || "${ID_LIKE:-}" =~ rhel ]]; then
-            DISTRO_NAME="rocky"
-        elif [[ "${ID:-}" == "fedora" ]]; then
-            DISTRO_NAME="fedora"
-        else
-            DISTRO_NAME="rocky"
-        fi
-    else
-        DISTRO_NAME="rocky"
-    fi
+    DISTRO_NAME="rocky"
 fi
 
 if [ -z "$DISTRO_VER" ]; then
-    if [ "$DISTRO_NAME" == "rocky" ]; then
+    if [[ "$DISTRO_NAME" == "rocky" || "$DISTRO_NAME" == "almalinux" ]]; then
         DISTRO_VER="10"
     else
         DISTRO_VER="44"

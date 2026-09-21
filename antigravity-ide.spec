@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        20%{?dist}
+Release:        21%{?dist}
 Summary:        Antigravity IDE launcher utility
 
 License:        GPL-3.0-or-later
@@ -33,7 +33,7 @@ Requires:       libsecret
 
 %description
 Open-source launcher and desktop integration utility for Antigravity IDE on
-Fedora and Enterprise Linux (Rocky Linux 10). It automatically downloads and
+Fedora, Rocky Linux 10, and AlmaLinux 10. It automatically downloads and
 installs the latest stable Antigravity IDE binary from Google on first run.
 
 %prep
@@ -142,6 +142,10 @@ fi
 %{_datadir}/applications/antigravity-ide.desktop
 
 %changelog
+* Mon Sep 21 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-21
+- Add official AlmaLinux 10 support and repository targeting
+- Harmonize release version across Rocky Linux 10, AlmaLinux 10, and Fedora 44
+
 * Fri Sep 18 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-20
 - License packaging scripts and launcher under GPLv3 (GPL-3.0-or-later)
 - Add Enterprise Linux 10 (Rocky Linux 10) autodetection and repository targeting

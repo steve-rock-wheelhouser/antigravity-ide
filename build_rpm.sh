@@ -40,19 +40,40 @@ if [ ! -f "$SPEC_FILE" ]; then
     exit 1
 fi
 
-echo "Incrementing build/release number in spec file..."
-if grep -qE "^Release:" "$SPEC_FILE"; then
-    RELEASE_LINE=$(grep -E "^Release:" "$SPEC_FILE")
-    CURRENT_RELEASE=$(echo "$RELEASE_LINE" | sed -E 's/^Release:[[:space:]]*([0-9]+).*/\1/')
-    if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then
-        NEW_RELEASE=$((CURRENT_RELEASE + 1))
-        sed -i -E "s/^(Release:[[:space:]]*)$CURRENT_RELEASE/\1$NEW_RELEASE/" "$SPEC_FILE"
-        echo "Release version incremented from $CURRENT_RELEASE to $NEW_RELEASE."
+NO_BUMP=false
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --no-bump)
+            NO_BUMP=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if [[ "$NO_BUMP" == false ]]; then
+    echo "Incrementing build/release number in spec file..."
+    if grep -qE "^Release:" "$SPEC_FILE"; then
+        RELEASE_LINE=$(grep -E "^Release:" "$SPEC_FILE")
+        CURRENT_RELEASE=$(echo "$RELEASE_LINE" | sed -E 's/^Release:[[:space:]]*([0-9]+).*/\1/')
+        if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then
+            NEW_RELEASE=$((CURRENT_RELEASE + 1))
+            sed -i -E "s/^(Release:[[:space:]]*)$CURRENT_RELEASE/\1$NEW_RELEASE/" "$SPEC_FILE"
+            echo "Release version incremented from $CURRENT_RELEASE to $NEW_RELEASE."
+        else
+            echo "Warning: Could not parse numeric release version from: $RELEASE_LINE"
+        fi
     else
-        echo "Warning: Could not parse numeric release version from: $RELEASE_LINE"
+        echo "Warning: Release tag not found in $SPEC_FILE"
     fi
 else
-    echo "Warning: Release tag not found in $SPEC_FILE"
+    echo "Preserving release number in spec file (--no-bump enabled)..."
 fi
 
 echo "Setting up local rpmbuild directories..."
