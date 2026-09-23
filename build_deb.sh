@@ -116,6 +116,7 @@ echo "📍 Distro Detected: ${DISTRO_NAME} ${DISTRO_VER}"
 echo "========================================================================"
 
 BUILD_ROOT=$(mktemp -d -t antigravity-deb-build-XXXXXX)
+chmod 755 "$BUILD_ROOT"
 cleanup() {
     rm -rf "$BUILD_ROOT"
 }
