@@ -76,10 +76,10 @@ else
     exit 1
 fi
 
-# Parse version and release
-VERSION=$(awk 'tolower($1)=="version:" {print $2; exit}' "$SPEC_FILE")
-if [ -z "$VERSION" ]; then
-    VERSION="1.0.0"
+# Parse application version and release from spec file
+APP_VERSION=$(awk 'tolower($1)=="version:" {print $2; exit}' "$SPEC_FILE")
+if [ -z "$APP_VERSION" ]; then
+    APP_VERSION="1.0.0"
 fi
 
 if [[ "$NO_BUMP" == false ]]; then
@@ -89,28 +89,29 @@ if [[ "$NO_BUMP" == false ]]; then
             NEW_RELEASE=$((CURRENT_RELEASE + 1))
             sed -i -E "s/^(Release:[[:space:]]*)$CURRENT_RELEASE/\1$NEW_RELEASE/" "$SPEC_FILE"
             echo "==> Incremented release from $CURRENT_RELEASE to $NEW_RELEASE"
-            RELEASE="$NEW_RELEASE"
+            APP_RELEASE="$NEW_RELEASE"
         else
-            RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*//; s/%\{\??dist\}//g; s/[^0-9]+$//')
+            APP_RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*//; s/%\{\??dist\}//g; s/[^0-9]+$//')
         fi
     else
-        RELEASE="1"
+        APP_RELEASE="1"
     fi
 else
-    RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*//; s/%\{\??dist\}//g; s/[^0-9]+$//')
+    APP_RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*//; s/%\{\??dist\}//g; s/[^0-9]+$//')
 fi
 
-# Detect distribution
+# Detect distribution safely without clobbering variables
 DISTRO_NAME="debian"
 DISTRO_VER="13"
 if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    DISTRO_NAME="${ID:-debian}"
-    DISTRO_VER=$(echo "${VERSION_ID:-13}" | cut -d. -f1)
+    DISTRO_NAME="$(grep -E '^ID=' /etc/os-release | head -n 1 | cut -d= -f2 | tr -d '\"')"
+    DISTRO_VER="$(grep -E '^VERSION_ID=' /etc/os-release | head -n 1 | cut -d= -f2 | tr -d '\"' | cut -d. -f1)"
 fi
+DISTRO_NAME="${DISTRO_NAME:-debian}"
+DISTRO_VER="${DISTRO_VER:-13}"
 
 echo "========================================================================"
-echo "🔨 Building Debian/Ubuntu Package: antigravity-ide v${VERSION}-${RELEASE}"
+echo "🔨 Building Debian/Ubuntu Package: antigravity-ide v${APP_VERSION}-${APP_RELEASE}"
 echo "📍 Distro Detected: ${DISTRO_NAME} ${DISTRO_VER}"
 echo "========================================================================"
 
@@ -130,14 +131,14 @@ mkdir -p "$BUILD_ROOT/usr/share/doc/antigravity-ide"
 # 2. Generate DEBIAN/control
 cat <<EOF > "$BUILD_ROOT/DEBIAN/control"
 Package: antigravity-ide
-Version: ${VERSION}-${RELEASE}
+Version: ${APP_VERSION}-${APP_RELEASE}
 Section: devel
 Priority: optional
 Architecture: all
 Essential: no
 Maintainer: Steve Rock <steve.rock@wheelhouser.com>
 Depends: curl, tar, xdg-utils, desktop-file-utils, libnotify4, libxss1, libxkbfile1, libgbm1, libnss3, gnome-keyring, libsecret-1-0, libasound2t64 | libasound2
-Provides: antigravity (= ${VERSION}-${RELEASE})
+Provides: antigravity (= ${APP_VERSION}-${APP_RELEASE})
 Replaces: antigravity (<= 1.0.0-12)
 Conflicts: antigravity (<= 1.0.0-12)
 Homepage: https://github.com/steve-rock-wheelhouser/antigravity-ide
@@ -257,7 +258,7 @@ cp -f "$LICENSE_FILE" "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
 chmod 644 "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
 
 # 7. Build .deb package
-DEB_NAME="antigravity-ide_${VERSION}-${RELEASE}_all.deb"
+DEB_NAME="antigravity-ide_${APP_VERSION}-${APP_RELEASE}_all.deb"
 LOCAL_DEB="$SCRIPT_DIR/$DEB_NAME"
 
 echo "==> Invoking dpkg-deb..."
