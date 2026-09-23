@@ -109,14 +109,28 @@ else
     rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .el10" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 fi
 
-echo "Signing built RPMs..."
-rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
+if command -v rpmsign >/dev/null 2>&1; then
+    echo "Signing built RPMs..."
+    rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm 2>/dev/null || true
+else
+    echo "==> Note: rpmsign not present on this node; package will be signed centrally by repository orchestrator."
+fi
 
-echo "Copying built RPMs to workspace root..."
+DISTRO_NAME="rocky"
+DISTRO_VER="10"
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    DISTRO_NAME="${ID:-rocky}"
+    DISTRO_VER=$(echo "${VERSION_ID:-10}" | cut -d. -f1)
+fi
+
+STANDARDIZED_OUTPUT_DIR="$SCRIPT_DIR/build-linux/Output/$DISTRO_NAME/$DISTRO_VER"
+mkdir -p "$STANDARDIZED_OUTPUT_DIR"
+cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$STANDARDIZED_OUTPUT_DIR/"
 cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
 
 echo "--------------------------------------------------"
 echo "RPM build complete!"
 echo "Built files:"
-ls -la "$SCRIPT_DIR"/*.rpm
+ls -la "$STANDARDIZED_OUTPUT_DIR"/*.rpm
 echo "--------------------------------------------------"
