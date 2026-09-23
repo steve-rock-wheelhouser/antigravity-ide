@@ -19,9 +19,14 @@ EOF
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SPEC_FILE="$SCRIPT_DIR/antigravity-ide.spec"
-ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-ide-icon.png"
-LICENSE_FILE="$SCRIPT_DIR/LICENSE"
+if [[ "$(basename "$SCRIPT_DIR")" == "build-linux" ]]; then
+    PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    PROJECT_ROOT="$SCRIPT_DIR"
+fi
+SPEC_FILE="$PROJECT_ROOT/antigravity-ide.spec"
+ICON_FILE="$PROJECT_ROOT/assets/icons/antigravity-ide-icon.png"
+LICENSE_FILE="$PROJECT_ROOT/LICENSE"
 
 if [ ! -f "$ICON_FILE" ]; then
     echo "❌ Error: Cannot find icon at $ICON_FILE" >&2
@@ -260,13 +265,13 @@ chmod 644 "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
 
 # 7. Build .deb package
 DEB_NAME="antigravity-ide_${APP_VERSION}-${APP_RELEASE}_all.deb"
-LOCAL_DEB="$SCRIPT_DIR/$DEB_NAME"
+LOCAL_DEB="$PROJECT_ROOT/$DEB_NAME"
 
 echo "==> Invoking dpkg-deb..."
 "$DPKG_DEB_CMD" --build --root-owner-group "$BUILD_ROOT" "$LOCAL_DEB"
 
 # 8. Standardize output staging
-OUTPUT_BASE="$SCRIPT_DIR/build-linux/Output"
+OUTPUT_BASE="$PROJECT_ROOT/build-linux/Output"
 STANDARDIZED_OUTPUT_DIR="$OUTPUT_BASE/$DISTRO_NAME/$DISTRO_VER"
 mkdir -p "$STANDARDIZED_OUTPUT_DIR"
 cp -f "$LOCAL_DEB" "$STANDARDIZED_OUTPUT_DIR/"
