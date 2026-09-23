@@ -30,18 +30,45 @@ sudo dnf install -y antigravity-ide
 
 ---
 
-### 2. Rocky Linux 10 / Enterprise Linux 10
+### 2. Rocky Linux 10 & AlmaLinux 10 (Enterprise Linux 10)
 
 #### Option A: Install via Bootstrap RPM (Recommended)
 ```bash
-sudo dnf install https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky/10/x86_64/steve-rock-wheelhouser-release-1.0-4.el10.noarch.rpm
+# Rocky Linux 10
+sudo dnf install https://repo.wheelhouser.com/rocky/10/x86_64/steve-rock-wheelhouser-release-1.0-6.el10.noarch.rpm
+
+# AlmaLinux 10
+sudo dnf install https://repo.wheelhouser.com/almalinux/10/x86_64/steve-rock-wheelhouser-release-1.0-6.el10.noarch.rpm
+
 sudo dnf install -y antigravity-ide
 ```
 
 #### Option B: Manual Repository Setup
 ```bash
-sudo curl -sL https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouserllc-repo/main/rocky.repo -o /etc/yum.repos.d/wheelhouser.repo
+sudo curl -sL https://repo.wheelhouser.com/rocky.repo -o /etc/yum.repos.d/wheelhouser.repo
 sudo dnf install -y antigravity-ide
+```
+
+---
+
+### 3. Debian 13 (Trixie) & Ubuntu 24
+
+#### Configure Wheelhouser APT Repository:
+```bash
+# 1. Install keyring directory and download official Wheelhouser GPG key
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://repo.wheelhouser.com/steve-rock-wheelhouser-gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/wheelhouser.gpg
+sudo chmod a+r /etc/apt/keyrings/wheelhouser.gpg
+
+# 2. Add repository source (Debian 13 example)
+echo "deb [signed-by=/etc/apt/keyrings/wheelhouser.gpg] https://repo.wheelhouser.com/debian/13 ./" | sudo tee /etc/apt/sources.list.d/wheelhouser.list
+
+# For Ubuntu 24, use:
+# echo "deb [signed-by=/etc/apt/keyrings/wheelhouser.gpg] https://repo.wheelhouser.com/ubuntu/24 ./" | sudo tee /etc/apt/sources.list.d/wheelhouser.list
+
+# 3. Update index and install Antigravity IDE
+sudo apt update
+sudo apt install -y antigravity-ide
 ```
 
 ---

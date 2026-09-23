@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        21%{?dist}
+Release:        22%{?dist}
 Summary:        Antigravity IDE launcher utility
 
 License:        GPL-3.0-or-later
@@ -142,6 +142,11 @@ fi
 %{_datadir}/applications/antigravity-ide.desktop
 
 %changelog
+* Wed Sep 23 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-22
+- Add native Debian 13 (Trixie) and Ubuntu 24 (.deb) packaging and build support
+- Add build_deb.sh supporting dpkg-deb and automated packaging
+- Standardize cross-distribution launcher permissions and payload staging
+
 * Mon Sep 21 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-21
 - Add official AlmaLinux 10 support and repository targeting
 - Harmonize release version across Rocky Linux 10, AlmaLinux 10, and Fedora 44

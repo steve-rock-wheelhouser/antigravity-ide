@@ -10,7 +10,10 @@ steve-rock-wheelhouser-gpg-secret.key
 # Build artifacts & packaging caches
 rpmbuild/
 rpmbuild-release/
+debbuild/
 *.rpm
+*.deb
+build-linux/Output/
 *.iso
 build/
 dist/
