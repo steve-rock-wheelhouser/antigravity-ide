@@ -203,25 +203,39 @@ cleanup() {
 }
 trap cleanup EXIT
 
-LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
-ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
-DOWNLOADED=false
+# Check for pre-existing local download first
+for candidate in \
+    /root/Downloads/"Antigravity IDE.tar.gz" \
+    /root/Downloads/"Antigravity-IDE.tar.gz" \
+    /home/*/Downloads/"Antigravity IDE.tar.gz" \
+    /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+    if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+        echo "Found valid cached payload at $candidate"
+        cp "$candidate" "$ARCHIVE"
+        DOWNLOADED=true
+        break
+    fi
+done
 
-if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
-    DOWNLOADED=true
-elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
-    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
-    DOWNLOADED=true
-elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
-    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
-    DOWNLOADED=true
-elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
-    echo "Downloaded payload from Google CDN"
-    DOWNLOADED=true
+if [ "$DOWNLOADED" = false ]; then
+    LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+    LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+    REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+
+    if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+        echo "Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
+        DOWNLOADED=true
+    elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+        echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
+        DOWNLOADED=true
+    else
+        rm -f "$ARCHIVE"
+        echo "Downloading payload from Google CDN..."
+        if curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL" && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+            echo "Downloaded payload from Google CDN"
+            DOWNLOADED=true
+        fi
+    fi
 fi
 
 if [ "$DOWNLOADED" = true ] && [ -f "$ARCHIVE" ]; then
@@ -390,25 +404,39 @@ mkdir -p "$TARGET_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
-ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
-DOWNLOADED=false
+# Check for pre-existing local download first
+for candidate in \
+    "$HOME/Downloads/Antigravity IDE.tar.gz" \
+    "$HOME/Downloads/Antigravity-IDE.tar.gz" \
+    /home/*/Downloads/"Antigravity IDE.tar.gz" \
+    /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+    if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+        echo "✅ Found valid cached payload at $candidate"
+        cp "$candidate" "$ARCHIVE"
+        DOWNLOADED=true
+        break
+    fi
+done
 
-if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "✅ Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
-    DOWNLOADED=true
-elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
-    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
-    DOWNLOADED=true
-elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
-    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
-    DOWNLOADED=true
-elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
-    echo "✅ Downloaded payload from Google CDN"
-    DOWNLOADED=true
+if [ "$DOWNLOADED" = false ]; then
+    LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+    LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+    REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+
+    if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+        echo "✅ Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
+        DOWNLOADED=true
+    elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+        echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
+        DOWNLOADED=true
+    else
+        rm -f "$ARCHIVE"
+        echo "Downloading payload from Google CDN..."
+        if curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL" && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+            echo "✅ Downloaded payload from Google CDN"
+            DOWNLOADED=true
+        fi
+    fi
 fi
 
 if [ "$DOWNLOADED" = false ] || [ ! -f "$ARCHIVE" ]; then
