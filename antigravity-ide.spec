@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 30
+%define release_number 31
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -59,16 +59,32 @@ mkdir -p %{buildroot}%{_datadir}/metainfo
 # Install AppStream metainfo
 install -m 644 %{SOURCE2} %{buildroot}%{_datadir}/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml
 
-# Install Pixmaps icons
+# Install Pixmaps icons (PNG & Scalable SVG for both reverse-DNS and appname)
+install -m 644 %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/antigravity-ide.png
 install -m 644 %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/antigravity-ide-icon.png
 install -m 644 %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.png
+if [ -f "hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg" ]; then
+    install -m 644 hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg %{buildroot}%{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.svg
+    install -m 644 hicolor/scalable/apps/antigravity-ide.svg %{buildroot}%{_datadir}/pixmaps/antigravity-ide.svg
+fi
 
-# Install standard Hicolor icon theme icons
-for size in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512; do
-    install -d -m 755 %{buildroot}%{_datadir}/icons/hicolor/${size}/apps
-    install -m 644 hicolor/${size}/apps/antigravity-ide-icon.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/antigravity-ide-icon.png
-    install -m 644 hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png
+# Install standard Hicolor icon theme icons (16x16 through 1024x1024)
+for size in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512 1024x1024; do
+    if [ -d "hicolor/${size}/apps" ]; then
+        install -d -m 755 %{buildroot}%{_datadir}/icons/hicolor/${size}/apps
+        install -m 644 hicolor/${size}/apps/antigravity-ide.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/antigravity-ide.png
+        install -m 644 hicolor/${size}/apps/antigravity-ide-icon.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/antigravity-ide-icon.png
+        install -m 644 hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png
+    fi
 done
+
+# Install scalable vector icons (preferred by modern GNOME/KDE/Flatpak)
+if [ -d "hicolor/scalable/apps" ]; then
+    install -d -m 755 %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
+    install -m 644 hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg
+    install -m 644 hicolor/scalable/apps/antigravity-ide.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/antigravity-ide.svg
+    install -m 644 hicolor/scalable/apps/antigravity-ide-icon.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/antigravity-ide-icon.svg
+fi
 
 # Create launcher wrapper script in /usr/bin/antigravity-ide
 cat <<'EOF' > %{buildroot}%{_bindir}/antigravity-ide
@@ -276,7 +292,17 @@ mkdir -p /etc/skel/Desktop
 cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 
+# Clean up any stale user-local overrides and poisoned icon caches
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    rm -f "$user_home/.local/share/icons/hicolor/icon-theme.cache" 2>/dev/null || true
+    rm -f "$user_home/.local/share/applications/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
+    rm -f "$user_home/.local/share/applications/antigravity-ide.desktop" 2>/dev/null || true
+    rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
+done
+
 # Update desktop, icon, and AppStream databases
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
 fi
@@ -286,6 +312,10 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+
+# Notify GNOME Shell and desktop managers of desktop database updates
+touch %{_datadir}/applications &>/dev/null || true
+touch %{_datadir}/icons/hicolor &>/dev/null || true
 
 %postun
 if [ "$1" -eq 0 ]; then
@@ -298,6 +328,7 @@ if [ "$1" -eq 0 ]; then
     rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
 fi
@@ -307,19 +338,26 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+touch %{_datadir}/applications &>/dev/null || true
+touch %{_datadir}/icons/hicolor &>/dev/null || true
 
 %files
 %doc LICENSE
 %{_bindir}/antigravity-ide
 %{_bindir}/antigravity
 %{_datadir}/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml
-%{_datadir}/pixmaps/antigravity-ide-icon.png
-%{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.png
-%{_datadir}/icons/hicolor/*/apps/*.png
+%{_datadir}/pixmaps/*
+%{_datadir}/icons/hicolor/*/*/*
 %{_datadir}/applications/antigravity-ide.desktop
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-31
+- Add scalable vector SVGs in hicolor/scalable/apps and /usr/share/pixmaps
+- Add 1024x1024 HiDPI icons and dual-name all icons (com.wheelhouser.antigravity-ide and antigravity-ide)
+- Auto-clean stale user icon caches and local desktop shadow overrides in post-install
+- Force GTK icon cache, desktop database, and AppStream cache updates
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-30
 - Standardize %define release_number macro per AGENTS-BUILD.md specifications
 - Stabilize multi-distro build matrix execution across Rocky, Fedora, Alma, Debian, and Ubuntu

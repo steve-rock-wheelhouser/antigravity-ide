@@ -275,6 +275,16 @@ mkdir -p /etc/skel/Desktop
 cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 
+# Clean up any stale user-local overrides and poisoned icon caches
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    rm -f "$user_home/.local/share/icons/hicolor/icon-theme.cache" 2>/dev/null || true
+    rm -f "$user_home/.local/share/applications/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
+    rm -f "$user_home/.local/share/applications/antigravity-ide.desktop" 2>/dev/null || true
+    rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
+done
+
+/bin/touch --no-create /usr/share/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
 fi
@@ -284,6 +294,11 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+
+# Notify GNOME Shell and desktop managers of desktop database updates
+touch /usr/share/applications &>/dev/null || true
+touch /usr/share/icons/hicolor &>/dev/null || true
+
 exit 0
 EOF
 chmod 755 "$BUILD_ROOT/DEBIAN/postinst"
@@ -301,6 +316,8 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     done
     rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
+
+/bin/touch --no-create /usr/share/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
 fi
@@ -310,6 +327,9 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+touch /usr/share/applications &>/dev/null || true
+touch /usr/share/icons/hicolor &>/dev/null || true
+
 exit 0
 EOF
 chmod 755 "$BUILD_ROOT/DEBIAN/postrm"
@@ -437,18 +457,35 @@ chmod 644 "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.de
 # Create legacy CLI desktop launcher alias
 ln -sf com.wheelhouser.antigravity-ide.desktop "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
 
-# Install pixmaps icons
+# Install pixmaps icons (PNG & SVG for both reverse-DNS and appname)
+cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide.png"
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide-icon.png"
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/com.wheelhouser.antigravity-ide.png"
-chmod 644 "$BUILD_ROOT/usr/share/pixmaps/"*.png
+if [ -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg" ]; then
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg" "$BUILD_ROOT/usr/share/pixmaps/com.wheelhouser.antigravity-ide.svg"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/antigravity-ide.svg" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide.svg"
+fi
+chmod 644 "$BUILD_ROOT/usr/share/pixmaps/"*
 
-# Install standard Hicolor icon theme icons
-for sz in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512; do
-    mkdir -p "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps"
-    cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/antigravity-ide-icon.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/antigravity-ide-icon.png"
-    cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png"
-    chmod 644 "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/"*.png
+# Install standard Hicolor icon theme icons (16x16 through 1024x1024)
+for sz in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512 1024x1024; do
+    if [ -d "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps" ]; then
+        mkdir -p "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps"
+        cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/antigravity-ide.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/antigravity-ide.png"
+        cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/antigravity-ide-icon.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/antigravity-ide-icon.png"
+        cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png"
+        chmod 644 "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/"*.png
+    fi
 done
+
+# Install scalable vector icons (preferred by modern GNOME/KDE/Flatpak)
+if [ -d "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps" ]; then
+    mkdir -p "$BUILD_ROOT/usr/share/icons/hicolor/scalable/apps"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg" "$BUILD_ROOT/usr/share/icons/hicolor/scalable/apps/com.wheelhouser.antigravity-ide.svg"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/antigravity-ide.svg" "$BUILD_ROOT/usr/share/icons/hicolor/scalable/apps/antigravity-ide.svg"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/scalable/apps/antigravity-ide-icon.svg" "$BUILD_ROOT/usr/share/icons/hicolor/scalable/apps/antigravity-ide-icon.svg"
+    chmod 644 "$BUILD_ROOT/usr/share/icons/hicolor/scalable/apps/"*.svg
+fi
 
 cp -f "$LICENSE_FILE" "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
 chmod 644 "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
