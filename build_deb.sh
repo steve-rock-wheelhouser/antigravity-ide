@@ -157,8 +157,9 @@ Replaces: antigravity (<= 1.0.0-12)
 Conflicts: antigravity (<= 1.0.0-12)
 Homepage: https://wheelhouser.com/products/antigravity-ide.html
 Description: Advanced AI-Powered Agentic Coding & Development Suite
- Antigravity IDE is a next-generation integrated development environment and
- intelligent coding companion designed by Wheelhouser LLC. Powered by autonomous
+ This Linux wrapper/installer from Wheelhouser LLC simplifies and automates the
+ installation of Antigravity IDE, Google's next-generation integrated development
+ environment and intelligent coding companion. Powered by autonomous
  AI agentic architecture, Antigravity IDE empowers developers to create, debug,
  refactor, and test complex software systems with speed and confidence.
 EOF

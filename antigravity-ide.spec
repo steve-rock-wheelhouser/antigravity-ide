@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        27%{?dist}
+Release:        28%{?dist}
 Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later
@@ -34,8 +34,9 @@ Requires:       gnome-keyring
 Requires:       libsecret
 
 %description
-Antigravity IDE is a next-generation integrated development environment and
-intelligent coding companion designed by Wheelhouser LLC. Powered by cutting-edge
+This Linux wrapper/installer from Wheelhouser LLC simplifies and automates the
+installation of Antigravity IDE, Google's next-generation integrated development
+environment and intelligent coding companion. Powered by cutting-edge
 autonomous AI agentic architecture, Antigravity IDE empowers developers to create,
 debug, refactor, and test complex software systems with unprecedented speed,
 precision, and confidence. Includes complete Linux desktop integration, high-resolution
