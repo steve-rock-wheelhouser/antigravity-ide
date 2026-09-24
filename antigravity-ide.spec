@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 29
+%define release_number 30
 
 Name:           antigravity-ide
 Version:        1.0.0
