@@ -282,10 +282,11 @@ else
     echo "Warning: Payload not fully unpacked in post-install; launcher wrapper will initialize payload on first run."
 fi
 
-# Deploy desktop shortcut to all interactive user Desktop folders
+# Deploy desktop shortcut to all interactive user Desktop folders (RDNS naming)
 if [ -d "/root/Desktop" ]; then
-    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
-    chmod 755 /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
+    chmod 755 /root/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
 fi
 for user_home in /home/*; do
     [ -d "$user_home" ] || continue
@@ -293,14 +294,16 @@ for user_home in /home/*; do
     id -u "$user_name" >/dev/null 2>&1 || continue
     mkdir -p "$user_home/Desktop"
     chown "$user_name:" "$user_home/Desktop" 2>/dev/null || true
-    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/Antigravity-IDE.desktop"
-    chown "$user_name:" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
-    chmod 755 "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
-    su - "$user_name" -c "gio set '$user_home/Desktop/Antigravity-IDE.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
+    rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop"
+    chown "$user_name:" "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
+    chmod 755 "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
+    su - "$user_name" -c "gio set '$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
 done
 mkdir -p /etc/skel/Desktop
-cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
-chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
+chmod 755 /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
 
 # Clean up any stale user-local overrides, poisoned icon caches, and stale screenshot caches
 rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
@@ -346,11 +349,11 @@ set -e
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     echo "Removing Antigravity IDE system-wide files..."
     rm -rf /usr/share/antigravity-ide
-    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /root/Desktop/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
     for user_home in /home/*; do
-        rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+        rm -f "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
     done
-    rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
 # Remove legacy/duplicate system-wide desktop launchers if present
@@ -525,7 +528,7 @@ Icon=com.wheelhouser.antigravity-ide
 Terminal=false
 Categories=Development;IDE;
 MimeType=x-scheme-handler/antigravity;text/plain;
-StartupWMClass=antigravity
+StartupWMClass=antigravity-ide
 StartupNotify=true
 Keywords=code;coding;editor;ide;ai;developer;agent;terminal;debug;
 Actions=NewWindow;

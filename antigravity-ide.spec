@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 36
+%define release_number 37
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -227,7 +227,7 @@ Icon=com.wheelhouser.antigravity-ide
 Terminal=false
 Categories=Development;IDE;
 MimeType=x-scheme-handler/antigravity;text/plain;
-StartupWMClass=antigravity
+StartupWMClass=antigravity-ide
 StartupNotify=true
 Keywords=code;coding;editor;ide;ai;developer;agent;terminal;debug;
 Actions=NewWindow;
@@ -330,10 +330,11 @@ else
     echo "Warning: Payload not fully unpacked in post-install; launcher wrapper will initialize payload on first run."
 fi
 
-# Deploy desktop shortcut to all interactive user Desktop folders
+# Deploy desktop shortcut to all interactive user Desktop folders (RDNS naming)
 if [ -d "/root/Desktop" ]; then
-    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
-    chmod 755 /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
+    chmod 755 /root/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
 fi
 for user_home in /home/*; do
     [ -d "$user_home" ] || continue
@@ -341,15 +342,17 @@ for user_home in /home/*; do
     id -u "$user_name" >/dev/null 2>&1 || continue
     mkdir -p "$user_home/Desktop"
     chown "$user_name:" "$user_home/Desktop" 2>/dev/null || true
-    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/Antigravity-IDE.desktop"
-    chown "$user_name:" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
-    chmod 755 "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop"
+    chown "$user_name:" "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
+    chmod 755 "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
     # Mark as trusted for GNOME Desktop Icons NG if gio is available
-    su - "$user_name" -c "gio set '$user_home/Desktop/Antigravity-IDE.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
+    su - "$user_name" -c "gio set '$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
 done
 mkdir -p /etc/skel/Desktop
-cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
-chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
+chmod 755 /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop 2>/dev/null || true
 
 # Clean up any stale user-local overrides, poisoned icon caches, and stale screenshot caches
 rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
@@ -389,11 +392,11 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 if [ "$1" -eq 0 ]; then
     echo "Removing Antigravity IDE system-wide files..."
     rm -rf /usr/share/antigravity-ide
-    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /root/Desktop/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
     for user_home in /home/*; do
-        rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+        rm -f "$user_home/Desktop/com.wheelhouser.antigravity-ide.desktop" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
     done
-    rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    rm -f /etc/skel/Desktop/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
 # Remove legacy/duplicate system-wide desktop launchers if present
@@ -430,6 +433,11 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-37
+- Align StartupWMClass with window app_id (antigravity-ide) for GNOME Wayland window grouping and dock tracking
+- Standardize desktop shortcut deployment to reverse-DNS convention (com.wheelhouser.antigravity-ide.desktop)
+- Clean up legacy Antigravity-IDE.desktop shortcuts across user profiles
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-36
 - Remove all aggressive process termination (pkill / kill -9) from packaging, wrappers, and install scripts
 - Fix missing ARCHIVE variable in wrapper and post-install scriptlets preventing payload deployment
