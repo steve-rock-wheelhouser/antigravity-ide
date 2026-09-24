@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 31
+%define release_number 32
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -202,9 +202,6 @@ Name=Open New Window
 Exec=%{_bindir}/antigravity-ide --new-window
 EOF
 
-# Create legacy CLI desktop launcher alias
-ln -sf com.wheelhouser.antigravity-ide.desktop %{buildroot}%{_datadir}/applications/antigravity-ide.desktop
-
 %pre
 echo "Terminating any running Antigravity IDE processes..."
 pkill -x antigravity-ide || true
@@ -301,6 +298,9 @@ for user_home in /home/*; do
     rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
 done
 
+# Remove legacy/duplicate system-wide desktop launchers if present
+rm -f %{_datadir}/applications/antigravity-ide.desktop 2>/dev/null || true
+
 # Update desktop, icon, and AppStream databases
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
@@ -312,6 +312,9 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+
+# Reset GNOME Software daemon so fresh AppStream and launcher metadata are picked up immediately
+pkill -x gnome-software 2>/dev/null || pkill -f "/usr/bin/gnome-software" 2>/dev/null || true
 
 # Notify GNOME Shell and desktop managers of desktop database updates
 touch %{_datadir}/applications &>/dev/null || true
@@ -328,6 +331,9 @@ if [ "$1" -eq 0 ]; then
     rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
+# Remove legacy/duplicate system-wide desktop launchers if present
+rm -f %{_datadir}/applications/antigravity-ide.desktop 2>/dev/null || true
+
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
@@ -338,6 +344,7 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+pkill -x gnome-software 2>/dev/null || pkill -f "/usr/bin/gnome-software" 2>/dev/null || true
 touch %{_datadir}/applications &>/dev/null || true
 touch %{_datadir}/icons/hicolor &>/dev/null || true
 
@@ -348,10 +355,16 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml
 %{_datadir}/pixmaps/*
 %{_datadir}/icons/hicolor/*/*/*
-%{_datadir}/applications/antigravity-ide.desktop
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-32
+- Canonicalize single reverse-DNS desktop launcher (com.wheelhouser.antigravity-ide.desktop)
+- Eliminate duplicate antigravity-ide.desktop alias to resolve dual entries in GNOME Settings and AppStream collisions
+- Clean up legacy desktop alias files and purge stale user-local/icon caches on post-install
+- Force AppStream cache refresh and restart GNOME Software service daemon to apply metadata updates
+- Full AppStream release history synchronized with scalable SVG and HiDPI icon assets
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-31
 - Add scalable vector SVGs in hicolor/scalable/apps and /usr/share/pixmaps
 - Add 1024x1024 HiDPI icons and dual-name all icons (com.wheelhouser.antigravity-ide and antigravity-ide)

@@ -109,6 +109,24 @@
   </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-32" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-32: Unify single canonical reverse-DNS desktop launcher, eliminate duplicate settings entries, provide full AppStream releases history, and add scalable SVG/HiDPI icon assets.</p>
+      </description>
+    </release>
+    <release version="1.0.0-31" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-31: Add scalable vector SVGs in hicolor/scalable/apps and /usr/share/pixmaps, 1024x1024 HiDPI icons, and automated cache updater.</p>
+      </description>
+    </release>
+    <release version="1.0.0-30" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-30: Standardize release number macro per AGENTS-BUILD.md specifications and multi-distro build matrix synchronization.</p>
+      </description>
+    </release>
     <release version="1.0.0-29" date="2026-09-24">
       <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
       <description>

@@ -284,6 +284,9 @@ for user_home in /home/*; do
     rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
 done
 
+# Remove legacy/duplicate system-wide desktop launchers if present
+rm -f /usr/share/applications/antigravity-ide.desktop 2>/dev/null || true
+
 /bin/touch --no-create /usr/share/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
@@ -294,6 +297,9 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+
+# Reset GNOME Software cache daemon so fresh AppStream and launcher metadata are picked up immediately
+pkill -x gnome-software 2>/dev/null || pkill -f "/usr/bin/gnome-software" 2>/dev/null || true
 
 # Notify GNOME Shell and desktop managers of desktop database updates
 touch /usr/share/applications &>/dev/null || true
@@ -317,6 +323,9 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
+# Remove legacy/duplicate system-wide desktop launchers if present
+rm -f /usr/share/applications/antigravity-ide.desktop 2>/dev/null || true
+
 /bin/touch --no-create /usr/share/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
@@ -327,6 +336,7 @@ fi
 if command -v appstreamcli >/dev/null 2>&1; then
     appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
+pkill -x gnome-software 2>/dev/null || pkill -f "/usr/bin/gnome-software" 2>/dev/null || true
 touch /usr/share/applications &>/dev/null || true
 touch /usr/share/icons/hicolor &>/dev/null || true
 
@@ -453,9 +463,6 @@ Name=Open New Window
 Exec=/usr/bin/antigravity-ide --new-window
 EOF
 chmod 644 "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.desktop"
-
-# Create legacy CLI desktop launcher alias
-ln -sf com.wheelhouser.antigravity-ide.desktop "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
 
 # Install pixmaps icons (PNG & SVG for both reverse-DNS and appname)
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide.png"
