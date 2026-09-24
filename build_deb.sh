@@ -170,7 +170,7 @@ cat <<'EOF' > "$BUILD_ROOT/DEBIAN/postinst"
 #!/bin/sh
 set -e
 INSTALL_DIR="/usr/share/antigravity-ide"
-echo "Downloading Antigravity IDE package from Google..."
+echo "Downloading Antigravity IDE package..."
 mkdir -p "$INSTALL_DIR"
 TEMP_DIR=$(mktemp -d)
 cleanup() {
@@ -178,11 +178,26 @@ cleanup() {
 }
 trap cleanup EXIT
 
-URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
+DOWNLOADED=false
 
-if curl -sL -o "$TEMP_DIR/Antigravity-IDE.tar.gz" "$URL"; then
+if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
+    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
+    DOWNLOADED=true
+elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
+    echo "Downloaded payload from Google CDN"
+    DOWNLOADED=true
+fi
+
+if [ "$DOWNLOADED" = true ] && [ -f "$ARCHIVE" ]; then
     echo "Extracting payload..."
-    tar -xzf "$TEMP_DIR/Antigravity-IDE.tar.gz" -C "$TEMP_DIR"
+    tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
     BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)
     if [ -n "$BIN_FILE" ]; then
         SOURCE_DIR=$(dirname "$BIN_FILE")
@@ -205,12 +220,10 @@ if curl -sL -o "$TEMP_DIR/Antigravity-IDE.tar.gz" "$URL"; then
 
         echo "Antigravity IDE payload installed successfully in $INSTALL_DIR."
     else
-        echo "Error: Antigravity IDE binary could not be found in archive." >&2
-        exit 1
+        echo "Warning: Antigravity IDE binary could not be found in archive; wrapper will initialize on first run."
     fi
 else
-    echo "Error: Failed to download Antigravity IDE from $URL." >&2
-    exit 1
+    echo "Warning: Failed to download payload during deb post-install; launcher wrapper will initialize payload on first run."
 fi
 exit 0
 EOF
@@ -234,9 +247,86 @@ chmod 755 "$BUILD_ROOT/DEBIAN/postrm"
 # 6. Install binaries, icons, and desktop entries into package payload
 cat <<'EOF' > "$BUILD_ROOT/usr/bin/antigravity-ide"
 #!/usr/bin/bash
-# Clean up any stale antigravity-ide processes (excluding this wrapper script) to release the single-instance lock
-pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
-exec /usr/share/antigravity-ide/bin/antigravity-ide "$@"
+set -e
+
+SYS_BIN="/usr/share/antigravity-ide/bin/antigravity-ide"
+USER_BIN="$HOME/.local/share/antigravity-ide/bin/antigravity-ide"
+
+# 1. Launch system payload if present
+if [ -x "$SYS_BIN" ]; then
+    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
+    exec "$SYS_BIN" "$@"
+fi
+
+# 2. Launch user-local payload if present
+if [ -x "$USER_BIN" ]; then
+    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
+    exec "$USER_BIN" "$@"
+fi
+
+# 3. Fallback: First-run payload deployment
+echo "========================================================================"
+echo "🚀 Antigravity IDE: First-Run Payload Initialization"
+echo "========================================================================"
+echo "Payload not found in system or user paths. Initializing payload..."
+
+if [ -w "/usr/share" ] || [ "$(id -u)" -eq 0 ]; then
+    TARGET_DIR="/usr/share/antigravity-ide"
+else
+    TARGET_DIR="$HOME/.local/share/antigravity-ide"
+fi
+
+mkdir -p "$TARGET_DIR"
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
+
+LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
+DOWNLOADED=false
+
+if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
+    DOWNLOADED=true
+elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
+    echo "✅ Downloaded payload from Google CDN"
+    DOWNLOADED=true
+fi
+
+if [ "$DOWNLOADED" = false ] || [ ! -f "$ARCHIVE" ]; then
+    echo "❌ Error: Failed to download Antigravity IDE payload from local hub or Google CDN." >&2
+    exit 1
+fi
+
+echo "Extracting payload..."
+tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
+BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)
+
+if [ -n "$BIN_FILE" ]; then
+    SOURCE_DIR=$(dirname "$BIN_FILE")
+    rm -rf "$TARGET_DIR"/*
+    cp -r "$SOURCE_DIR/"* "$TARGET_DIR/"
+    chmod -R u+rwX,go+rX "$TARGET_DIR"
+    chmod +x "$TARGET_DIR/antigravity-ide" 2>/dev/null || true
+    chmod +x "$TARGET_DIR/bin/antigravity-ide" 2>/dev/null || true
+
+    if [ -f "$TARGET_DIR/chrome-sandbox" ] && [ "$(id -u)" -eq 0 ]; then
+        chown root:root "$TARGET_DIR/chrome-sandbox"
+        chmod 4755 "$TARGET_DIR/chrome-sandbox"
+    fi
+
+    echo "✅ Antigravity IDE deployed successfully in $TARGET_DIR."
+    echo "Starting Antigravity IDE..."
+    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
+    exec "$TARGET_DIR/bin/antigravity-ide" "$@"
+else
+    echo "❌ Error: Antigravity IDE binary could not be found in archive." >&2
+    exit 1
+fi
 EOF
 chmod 755 "$BUILD_ROOT/usr/bin/antigravity-ide"
 
