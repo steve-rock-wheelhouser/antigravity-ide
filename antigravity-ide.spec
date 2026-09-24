@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 35
+%define release_number 36
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -91,19 +91,18 @@ cat <<'EOF' > %{buildroot}%{_bindir}/antigravity-ide
 #!/usr/bin/bash
 set -e
 
-SYS_BIN="/usr/share/antigravity-ide/bin/antigravity-ide"
-USER_BIN="$HOME/.local/share/antigravity-ide/bin/antigravity-ide"
-
 # 1. Launch system payload if present
-if [ -x "$SYS_BIN" ]; then
-    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
-    exec "$SYS_BIN" "$@"
+if [ -x "/usr/share/antigravity-ide/bin/antigravity-ide" ]; then
+    exec "/usr/share/antigravity-ide/bin/antigravity-ide" "$@"
+elif [ -x "/usr/share/antigravity-ide/antigravity-ide" ]; then
+    exec "/usr/share/antigravity-ide/antigravity-ide" "$@"
 fi
 
 # 2. Launch user-local payload if present
-if [ -x "$USER_BIN" ]; then
-    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
-    exec "$USER_BIN" "$@"
+if [ -x "$HOME/.local/share/antigravity-ide/bin/antigravity-ide" ]; then
+    exec "$HOME/.local/share/antigravity-ide/bin/antigravity-ide" "$@"
+elif [ -x "$HOME/.local/share/antigravity-ide/antigravity-ide" ]; then
+    exec "$HOME/.local/share/antigravity-ide/antigravity-ide" "$@"
 fi
 
 # 3. Fallback: First-run payload deployment
@@ -122,19 +121,36 @@ mkdir -p "$TARGET_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-# Check for pre-existing local download first
-for candidate in \
-    "$HOME/Downloads/Antigravity IDE.tar.gz" \
-    "$HOME/Downloads/Antigravity-IDE.tar.gz" \
-    /home/*/Downloads/"Antigravity IDE.tar.gz" \
-    /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
-    if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
-        echo "✅ Found valid cached payload at $candidate"
-        cp "$candidate" "$ARCHIVE"
+ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
+DOWNLOADED=false
+
+# Check for pre-existing extracted payload directory
+for candidate_dir in \
+    "$HOME/Downloads/Antigravity IDE" \
+    /home/*/Downloads/"Antigravity IDE"; do
+    if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
+        echo "✅ Found valid pre-extracted payload at $candidate_dir"
+        cp -r "$candidate_dir/"* "$TARGET_DIR/"
         DOWNLOADED=true
         break
     fi
 done
+
+# Check for pre-existing local tarball download
+if [ "$DOWNLOADED" = false ]; then
+    for candidate in \
+        "$HOME/Downloads/Antigravity IDE.tar.gz" \
+        "$HOME/Downloads/Antigravity-IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+            echo "✅ Found valid cached payload at $candidate"
+            cp "$candidate" "$ARCHIVE"
+            DOWNLOADED=true
+            break
+        fi
+    done
+fi
 
 if [ "$DOWNLOADED" = false ]; then
     LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
@@ -157,35 +173,40 @@ if [ "$DOWNLOADED" = false ]; then
     fi
 fi
 
-if [ "$DOWNLOADED" = false ] || [ ! -f "$ARCHIVE" ]; then
-    echo "❌ Error: Failed to download Antigravity IDE payload from local hub or Google CDN." >&2
+if [ "$DOWNLOADED" = false ]; then
+    echo "❌ Error: Failed to acquire Antigravity IDE payload from local cache or remote CDN." >&2
     exit 1
 fi
 
-echo "Extracting payload..."
-tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
-BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)
-
-if [ -n "$BIN_FILE" ]; then
-    SOURCE_DIR=$(dirname "$BIN_FILE")
-    rm -rf "$TARGET_DIR"/*
-    cp -r "$SOURCE_DIR/"* "$TARGET_DIR/"
-    chmod -R u+rwX,go+rX "$TARGET_DIR"
-    chmod +x "$TARGET_DIR/antigravity-ide" 2>/dev/null || true
-    chmod +x "$TARGET_DIR/bin/antigravity-ide" 2>/dev/null || true
-
-    if [ -f "$TARGET_DIR/chrome-sandbox" ] && [ "$(id -u)" -eq 0 ]; then
-        chown root:root "$TARGET_DIR/chrome-sandbox"
-        chmod 4755 "$TARGET_DIR/chrome-sandbox"
+if [ ! -f "$TARGET_DIR/chrome-sandbox" ] && [ -f "$ARCHIVE" ]; then
+    echo "Extracting payload..."
+    tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
+    BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)
+    if [ -n "$BIN_FILE" ]; then
+        SOURCE_DIR=$(dirname "$BIN_FILE")
+        rm -rf "$TARGET_DIR"/*
+        cp -r "$SOURCE_DIR/"* "$TARGET_DIR/"
+    else
+        echo "❌ Error: Antigravity IDE binary could not be found in archive." >&2
+        exit 1
     fi
+fi
 
-    echo "✅ Antigravity IDE deployed successfully in $TARGET_DIR."
-    echo "Starting Antigravity IDE..."
-    pgrep -x antigravity-ide | grep -v "^$$$" | xargs kill -9 2>/dev/null || true
+chmod -R u+rwX,go+rX "$TARGET_DIR"
+chmod +x "$TARGET_DIR/antigravity-ide" 2>/dev/null || true
+chmod +x "$TARGET_DIR/bin/antigravity-ide" 2>/dev/null || true
+
+if [ -f "$TARGET_DIR/chrome-sandbox" ] && [ "$(id -u)" -eq 0 ]; then
+    chown root:root "$TARGET_DIR/chrome-sandbox"
+    chmod 4755 "$TARGET_DIR/chrome-sandbox"
+fi
+
+echo "✅ Antigravity IDE deployed successfully in $TARGET_DIR."
+echo "Starting Antigravity IDE..."
+if [ -x "$TARGET_DIR/bin/antigravity-ide" ]; then
     exec "$TARGET_DIR/bin/antigravity-ide" "$@"
-else
-    echo "❌ Error: Antigravity IDE binary could not be found in archive." >&2
-    exit 1
+elif [ -x "$TARGET_DIR/antigravity-ide" ]; then
+    exec "$TARGET_DIR/antigravity-ide" "$@"
 fi
 EOF
 chmod 755 %{buildroot}%{_bindir}/antigravity-ide
@@ -216,31 +237,45 @@ Name=Open New Window
 Exec=%{_bindir}/antigravity-ide --new-window
 EOF
 
-%pre
-echo "Terminating any running Antigravity IDE processes..."
-pkill -x antigravity-ide || true
-
 %post
 INSTALL_DIR="/usr/share/antigravity-ide"
-echo "Downloading Antigravity IDE package..."
+echo "Deploying Antigravity IDE payload..."
 mkdir -p "$INSTALL_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-# Check for pre-existing local download first
-for candidate in \
-    /root/Downloads/"Antigravity IDE.tar.gz" \
-    /root/Downloads/"Antigravity-IDE.tar.gz" \
-    /home/*/Downloads/"Antigravity IDE.tar.gz" \
-    /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
-    if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
-        echo "Found valid cached payload at $candidate"
-        cp "$candidate" "$ARCHIVE"
+ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
+DOWNLOADED=false
+
+# 1. Check for pre-existing extracted payload directory first
+for candidate_dir in \
+    /root/Downloads/"Antigravity IDE" \
+    /home/*/Downloads/"Antigravity IDE"; do
+    if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
+        echo "Found pre-extracted payload at $candidate_dir"
+        cp -r "$candidate_dir/"* "$INSTALL_DIR/"
         DOWNLOADED=true
         break
     fi
 done
 
+# 2. Check for pre-existing local tarball download
+if [ "$DOWNLOADED" = false ]; then
+    for candidate in \
+        /root/Downloads/"Antigravity IDE.tar.gz" \
+        /root/Downloads/"Antigravity-IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+            echo "Found valid cached payload at $candidate"
+            cp "$candidate" "$ARCHIVE"
+            DOWNLOADED=true
+            break
+        fi
+    done
+fi
+
+# 3. Fallback to network download if needed
 if [ "$DOWNLOADED" = false ]; then
     LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
     LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
@@ -262,7 +297,8 @@ if [ "$DOWNLOADED" = false ]; then
     fi
 fi
 
-if [ "$DOWNLOADED" = true ] && [ -f "$ARCHIVE" ]; then
+# 4. Extract archive if payload was acquired via tarball
+if [ ! -f "$INSTALL_DIR/chrome-sandbox" ] && [ -f "$ARCHIVE" ]; then
     echo "Extracting payload..."
     tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
     BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)
@@ -270,30 +306,28 @@ if [ "$DOWNLOADED" = true ] && [ -f "$ARCHIVE" ]; then
         SOURCE_DIR=$(dirname "$BIN_FILE")
         rm -rf "$INSTALL_DIR"/*
         cp -r "$SOURCE_DIR/"* "$INSTALL_DIR/"
-        
-        # Ensure correct system-wide permissions and ownership
-        chown -R root:root "$INSTALL_DIR"
-        chmod -R u+rwX,go+rX "$INSTALL_DIR"
-        chmod +x "$INSTALL_DIR/antigravity-ide"
-        chmod +x "$INSTALL_DIR/bin/antigravity-ide"
-
-        # Set root SUID on chrome-sandbox (required on RHEL/Rocky Linux for Chromium sandboxing)
-        if [ -f "$INSTALL_DIR/chrome-sandbox" ]; then
-            chown root:root "$INSTALL_DIR/chrome-sandbox"
-            chmod 4755 "$INSTALL_DIR/chrome-sandbox"
-        fi
-
-        # Update desktop database for the URI scheme and desktop launcher
-        if command -v update-desktop-database >/dev/null 2>&1; then
-            update-desktop-database %{_datadir}/applications || true
-        fi
-
-        echo "Antigravity IDE payload installed successfully in $INSTALL_DIR."
-    else
-        echo "Warning: Antigravity IDE binary could not be found in archive; wrapper will initialize on first run."
     fi
+fi
+
+if [ -f "$INSTALL_DIR/chrome-sandbox" ]; then
+    # Ensure correct system-wide permissions and ownership
+    chown -R root:root "$INSTALL_DIR"
+    chmod -R u+rwX,go+rX "$INSTALL_DIR"
+    chmod +x "$INSTALL_DIR/antigravity-ide" 2>/dev/null || true
+    chmod +x "$INSTALL_DIR/bin/antigravity-ide" 2>/dev/null || true
+
+    # Set root SUID on chrome-sandbox (required on RHEL/Rocky Linux for Chromium sandboxing)
+    chown root:root "$INSTALL_DIR/chrome-sandbox"
+    chmod 4755 "$INSTALL_DIR/chrome-sandbox"
+
+    # Update desktop database for the URI scheme and desktop launcher
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database %{_datadir}/applications || true
+    fi
+
+    echo "Antigravity IDE payload installed successfully in $INSTALL_DIR."
 else
-    echo "Warning: Failed to download payload during RPM post-install; launcher wrapper will initialize payload on first run."
+    echo "Warning: Payload not fully unpacked in post-install; launcher wrapper will initialize payload on first run."
 fi
 
 # Deploy desktop shortcut to all interactive user Desktop folders
@@ -396,6 +430,13 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-36
+- Remove all aggressive process termination (pkill / kill -9) from packaging, wrappers, and install scripts
+- Fix missing ARCHIVE variable in wrapper and post-install scriptlets preventing payload deployment
+- Support direct copy from pre-extracted local Downloads payload folder
+- Ensure executable permissions on both root binary and bin/ wrapper
+- Set root SUID on chrome-sandbox for reliable Chromium execution on Enterprise Linux 10
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-35
 - Remove rogue router gateway IP (10.0.0.1) from staging hub fallback chain
 - Add gzip archive verification (gzip -t) to prevent corrupt HTML error page downloads

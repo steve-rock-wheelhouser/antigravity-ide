@@ -109,10 +109,6 @@ fi
 # Get the exact directory that contains the payload
 SOURCE_DIR=$(dirname "$SANDBOX_FILE")
 
-# Terminate any running Antigravity IDE processes only right before replacing files
-echo "Terminating any running Antigravity IDE processes..."
-pkill -x antigravity-ide || true
-
 # Prepare backup directory for safe rollback
 echo "Backing up existing installation..."
 BACKUP_DIR=$(mktemp -d)
@@ -153,9 +149,11 @@ echo "Generating command wrapper in $LAUNCHER_BIN_DIR/antigravity-ide..."
 rm -rf "$LAUNCHER_BIN_DIR/antigravity-ide"
 cat <<EOF > "$LAUNCHER_BIN_DIR/antigravity-ide"
 #!/usr/bin/bash
-# Clean up any stale processes to release the single-instance lock
-pgrep -x antigravity-ide | grep -v "^\$\$" | xargs kill -9 2>/dev/null || true
-exec "$INSTALL_DIR/bin/antigravity-ide" "\$@"
+if [ -x "$INSTALL_DIR/bin/antigravity-ide" ]; then
+    exec "$INSTALL_DIR/bin/antigravity-ide" "\$@"
+elif [ -x "$INSTALL_DIR/antigravity-ide" ]; then
+    exec "$INSTALL_DIR/antigravity-ide" "\$@"
+fi
 EOF
 chmod +x "$LAUNCHER_BIN_DIR/antigravity-ide"
 
