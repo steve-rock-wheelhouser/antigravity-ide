@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 32
+%define release_number 33
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -289,13 +289,15 @@ mkdir -p /etc/skel/Desktop
 cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 
-# Clean up any stale user-local overrides and poisoned icon caches
+# Clean up any stale user-local overrides, poisoned icon caches, and stale screenshot caches
+rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
 for user_home in /home/*; do
     [ -d "$user_home" ] || continue
     rm -f "$user_home/.local/share/icons/hicolor/icon-theme.cache" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/antigravity-ide.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
+    rm -rf "$user_home/.cache/gnome-software/screenshots" 2>/dev/null || true
 done
 
 # Remove legacy/duplicate system-wide desktop launchers if present
@@ -334,6 +336,13 @@ fi
 # Remove legacy/duplicate system-wide desktop launchers if present
 rm -f %{_datadir}/applications/antigravity-ide.desktop 2>/dev/null || true
 
+# Purge cached screenshots on uninstall/upgrade
+rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    rm -rf "$user_home/.cache/gnome-software/screenshots" 2>/dev/null || true
+done
+
 /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
@@ -358,6 +367,11 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-33
+- Deploy updated flagship store hero banner (store_hero_banner_1920x1080_v2.png) with multi-distro emblems
+- Flush GNOME Software screenshot cache on install/upgrade to display new visual assets immediately
+- Update AppStream metainfo with release 33 release notes and versioned media URLs
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-32
 - Canonicalize single reverse-DNS desktop launcher (com.wheelhouser.antigravity-ide.desktop)
 - Eliminate duplicate antigravity-ide.desktop alias to resolve dual entries in GNOME Settings and AppStream collisions

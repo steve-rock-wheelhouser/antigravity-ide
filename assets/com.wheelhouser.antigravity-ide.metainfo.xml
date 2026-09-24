@@ -77,7 +77,7 @@
   <screenshots>
     <screenshot type="default">
       <caption xml:lang="en">Antigravity IDE store hero banner</caption>
-      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080.png</image>
+      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080_v2.png</image>
     </screenshot>
     <screenshot>
       <caption xml:lang="en">Modern AI-powered agentic coding workspace with integrated terminal and editor</caption>
@@ -109,6 +109,12 @@
   </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-33" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-33: Deploy updated flagship store hero banner with multi-distro badges and force GNOME Software screenshot cache refresh.</p>
+      </description>
+    </release>
     <release version="1.0.0-32" date="2026-09-24">
       <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
       <description>

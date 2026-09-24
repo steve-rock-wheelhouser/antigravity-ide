@@ -275,13 +275,15 @@ mkdir -p /etc/skel/Desktop
 cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 
-# Clean up any stale user-local overrides and poisoned icon caches
+# Clean up any stale user-local overrides, poisoned icon caches, and stale screenshot caches
+rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
 for user_home in /home/*; do
     [ -d "$user_home" ] || continue
     rm -f "$user_home/.local/share/icons/hicolor/icon-theme.cache" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/antigravity-ide.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
+    rm -rf "$user_home/.cache/gnome-software/screenshots" 2>/dev/null || true
 done
 
 # Remove legacy/duplicate system-wide desktop launchers if present
@@ -325,6 +327,13 @@ fi
 
 # Remove legacy/duplicate system-wide desktop launchers if present
 rm -f /usr/share/applications/antigravity-ide.desktop 2>/dev/null || true
+
+# Purge cached screenshots on uninstall/upgrade
+rm -rf /root/.cache/gnome-software/screenshots 2>/dev/null || true
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    rm -rf "$user_home/.cache/gnome-software/screenshots" 2>/dev/null || true
+done
 
 /bin/touch --no-create /usr/share/icons/hicolor &>/dev/null || :
 if command -v update-desktop-database >/dev/null 2>&1; then
