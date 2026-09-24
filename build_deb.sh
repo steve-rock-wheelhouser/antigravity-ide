@@ -50,13 +50,17 @@ if [ ! -f "$SPEC_FILE" ]; then
     exit 1
 fi
 
-NO_BUMP=false
+BUMP_RELEASE=false
 TARGET="all"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --bump)
+            BUMP_RELEASE=true
+            shift
+            ;;
         --no-bump)
-            NO_BUMP=true
+            BUMP_RELEASE=false
             shift
             ;;
         --target|-t)
@@ -97,7 +101,7 @@ fi
 if grep -qE "^%define[[:space:]]+release_number" "$SPEC_FILE"; then
     CURRENT_RELEASE=$(grep -E "^%define[[:space:]]+release_number" "$SPEC_FILE" | awk '{print $3}')
     APP_RELEASE="$CURRENT_RELEASE"
-    if [[ "$NO_BUMP" == false ]]; then
+    if [[ "$BUMP_RELEASE" == true ]]; then
         if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then
             NEW_RELEASE=$((CURRENT_RELEASE + 1))
             sed -i -E "s/^(%define[[:space:]]+release_number[[:space:]]+)[0-9]+/\1$NEW_RELEASE/" "$SPEC_FILE"
@@ -105,7 +109,7 @@ if grep -qE "^%define[[:space:]]+release_number" "$SPEC_FILE"; then
             APP_RELEASE="$NEW_RELEASE"
         fi
     fi
-elif [[ "$NO_BUMP" == false ]]; then
+elif [[ "$BUMP_RELEASE" == true ]]; then
     if grep -qE "^Release:" "$SPEC_FILE"; then
         CURRENT_RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*([0-9]+).*/\1/')
         if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then

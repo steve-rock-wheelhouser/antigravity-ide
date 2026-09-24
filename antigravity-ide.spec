@@ -320,6 +320,11 @@ fi
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-30
+- Standardize %define release_number macro per AGENTS-BUILD.md specifications
+- Stabilize multi-distro build matrix execution across Rocky, Fedora, Alma, Debian, and Ubuntu
+- Preserve release numbers by default during compilation to prevent desynchronization
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-29
 - Canonicalize reverse-DNS desktop launcher (com.wheelhouser.antigravity-ide.desktop)
 - Fix AppStream metadata linking with pkgname and single canonical launchable

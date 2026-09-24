@@ -57,13 +57,17 @@ if [ ! -f "$SPEC_FILE" ]; then
     exit 1
 fi
 
-NO_BUMP=false
+BUMP_RELEASE=false
 TARGET="all"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --bump)
+            BUMP_RELEASE=true
+            shift
+            ;;
         --no-bump)
-            NO_BUMP=true
+            BUMP_RELEASE=false
             shift
             ;;
         --target|-t)
@@ -84,7 +88,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ "$NO_BUMP" == false ]]; then
+if [[ "$BUMP_RELEASE" == true ]]; then
     echo "Incrementing build/release number in spec file..."
     if grep -qE "^%define[[:space:]]+release_number" "$SPEC_FILE"; then
         CURRENT_RELEASE=$(grep -E "^%define[[:space:]]+release_number" "$SPEC_FILE" | awk '{print $3}')
@@ -109,7 +113,7 @@ if [[ "$NO_BUMP" == false ]]; then
         echo "Warning: Release tag not found in $SPEC_FILE"
     fi
 else
-    echo "Preserving release number in spec file (--no-bump enabled)..."
+    echo "Preserving release number in spec file (build mode)..."
 fi
 
 echo "Setting up local rpmbuild directories..."
