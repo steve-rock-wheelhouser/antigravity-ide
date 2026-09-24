@@ -104,6 +104,12 @@
   </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-27" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-27: Clarify application description and Google packaging details, harmonize build-linux orchestration scripts, and update staging distribution endpoints.</p>
+      </description>
+    </release>
     <release version="1.0.0-26" date="2026-09-24">
       <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
       <description>

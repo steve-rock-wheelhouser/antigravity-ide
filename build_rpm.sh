@@ -19,13 +19,18 @@ fi
 
 # Get directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RPMBUILD_DIR="$SCRIPT_DIR/rpmbuild"
-SPEC_FILE="$SCRIPT_DIR/antigravity-ide.spec"
-ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-ide-icon.png"
+if [[ "$(basename "$SCRIPT_DIR")" == "build-linux" ]]; then
+    PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    PROJECT_ROOT="$SCRIPT_DIR"
+fi
+RPMBUILD_DIR="$PROJECT_ROOT/rpmbuild"
+SPEC_FILE="$PROJECT_ROOT/antigravity-ide.spec"
+ICON_FILE="$PROJECT_ROOT/assets/icons/antigravity-ide-icon.png"
 
-LICENSE_FILE="$SCRIPT_DIR/LICENSE"
-METAINFO_FILE="$SCRIPT_DIR/assets/com.wheelhouser.antigravity-ide.metainfo.xml"
-HICOLOR_TAR="$SCRIPT_DIR/assets/icons/hicolor-icons.tar.gz"
+LICENSE_FILE="$PROJECT_ROOT/LICENSE"
+METAINFO_FILE="$PROJECT_ROOT/assets/com.wheelhouser.antigravity-ide.metainfo.xml"
+HICOLOR_TAR="$PROJECT_ROOT/assets/icons/hicolor-icons.tar.gz"
 
 if [ ! -f "$ICON_FILE" ]; then
     echo "Error: Cannot find icon at $ICON_FILE. Exiting."
@@ -44,7 +49,7 @@ fi
 
 if [ ! -f "$HICOLOR_TAR" ]; then
     echo "Error: Cannot find hicolor tarball at $HICOLOR_TAR. Generating..."
-    tar -czf "$HICOLOR_TAR" -C "$SCRIPT_DIR/assets/icons" hicolor
+    tar -czf "$HICOLOR_TAR" -C "$PROJECT_ROOT/assets/icons" hicolor
 fi
 
 if [ ! -f "$SPEC_FILE" ]; then
@@ -138,18 +143,18 @@ if [ -f /etc/os-release ]; then
     DISTRO_VER=$(echo "${VERSION_ID:-10}" | cut -d. -f1)
 fi
 
-STANDARDIZED_OUTPUT_DIR="$SCRIPT_DIR/build-linux/Output/$DISTRO_NAME/$DISTRO_VER"
+STANDARDIZED_OUTPUT_DIR="$PROJECT_ROOT/build-linux/Output/$DISTRO_NAME/$DISTRO_VER"
 mkdir -p "$STANDARDIZED_OUTPUT_DIR"
 cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$STANDARDIZED_OUTPUT_DIR/"
-cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
+cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$PROJECT_ROOT/"
 
 if [[ "$TARGET" == "all" ]]; then
-    mkdir -p "$SCRIPT_DIR/build-linux/Output/fedora/44"
-    mkdir -p "$SCRIPT_DIR/build-linux/Output/almalinux/10"
-    mkdir -p "$SCRIPT_DIR/build-linux/Output/rocky/10"
-    cp -f "$RPMBUILD_DIR"/RPMS/*/*fc44*.rpm "$SCRIPT_DIR/build-linux/Output/fedora/44/" 2>/dev/null || true
-    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$SCRIPT_DIR/build-linux/Output/almalinux/10/" 2>/dev/null || true
-    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$SCRIPT_DIR/build-linux/Output/rocky/10/" 2>/dev/null || true
+    mkdir -p "$PROJECT_ROOT/build-linux/Output/fedora/44"
+    mkdir -p "$PROJECT_ROOT/build-linux/Output/almalinux/10"
+    mkdir -p "$PROJECT_ROOT/build-linux/Output/rocky/10"
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*fc44*.rpm "$PROJECT_ROOT/build-linux/Output/fedora/44/" 2>/dev/null || true
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/almalinux/10/" 2>/dev/null || true
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/rocky/10/" 2>/dev/null || true
 fi
 
 echo "--------------------------------------------------"

@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        26%{?dist}
+Release:        27%{?dist}
 Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later
@@ -284,6 +284,11 @@ fi
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-27
+- Clarify Antigravity IDE application description and Google packaging details
+- Harmonize build-linux/build_rpm.sh symlink for automated multi-distro build matrix orchestration
+- Set default staging hub URLs to staging.wheelhouser.com
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-26
 - Complete AppStream 1.0 software center metadata suite and expanded screenshot gallery
 - Dual reverse-DNS desktop launchers (com.wheelhouser.antigravity-ide.desktop symlink)
