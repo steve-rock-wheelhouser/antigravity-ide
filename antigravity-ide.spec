@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 33
+%define release_number 34
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -368,6 +368,10 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-34
+- Update store hero banner URL to canonical store_hero_banner.png
+- Extend post-install cleanup to automatically eliminate legacy antigravity.desktop launchers
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-33
 - Deploy updated flagship store hero banner (store_hero_banner_1920x1080_v2.png) with multi-distro emblems
 - Flush GNOME Software screenshot cache on install/upgrade to display new visual assets immediately
