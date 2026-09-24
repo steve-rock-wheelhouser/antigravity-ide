@@ -1,6 +1,9 @@
+# Define the release number macro for auto-incrementing
+%define release_number 29
+
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        29%{?dist}
+Release:        %{release_number}%{?dist}
 Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later

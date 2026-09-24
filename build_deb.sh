@@ -94,7 +94,18 @@ if [ -z "$APP_VERSION" ]; then
     APP_VERSION="1.0.0"
 fi
 
-if [[ "$NO_BUMP" == false ]]; then
+if grep -qE "^%define[[:space:]]+release_number" "$SPEC_FILE"; then
+    CURRENT_RELEASE=$(grep -E "^%define[[:space:]]+release_number" "$SPEC_FILE" | awk '{print $3}')
+    APP_RELEASE="$CURRENT_RELEASE"
+    if [[ "$NO_BUMP" == false ]]; then
+        if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then
+            NEW_RELEASE=$((CURRENT_RELEASE + 1))
+            sed -i -E "s/^(%define[[:space:]]+release_number[[:space:]]+)[0-9]+/\1$NEW_RELEASE/" "$SPEC_FILE"
+            echo "==> Incremented release from $CURRENT_RELEASE to $NEW_RELEASE"
+            APP_RELEASE="$NEW_RELEASE"
+        fi
+    fi
+elif [[ "$NO_BUMP" == false ]]; then
     if grep -qE "^Release:" "$SPEC_FILE"; then
         CURRENT_RELEASE=$(grep -E "^Release:" "$SPEC_FILE" | sed -E 's/^Release:[[:space:]]*([0-9]+).*/\1/')
         if [[ "$CURRENT_RELEASE" =~ ^[0-9]+$ ]]; then
