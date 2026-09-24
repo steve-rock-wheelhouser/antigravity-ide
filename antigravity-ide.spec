@@ -1,12 +1,14 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        23%{?dist}
-Summary:        Antigravity IDE launcher utility
+Release:        25%{?dist}
+Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later
-URL:            https://github.com/steve-rock-wheelhouser/antigravity-ide
+URL:            https://wheelhouser.com/products/antigravity-ide.html
 Source0:        antigravity-ide-icon.png
 Source1:        LICENSE
+Source2:        com.wheelhouser.antigravity-ide.metainfo.xml
+Source3:        hicolor-icons.tar.gz
 
 BuildArch:      noarch
 
@@ -32,21 +34,37 @@ Requires:       gnome-keyring
 Requires:       libsecret
 
 %description
-Open-source launcher and desktop integration utility for Antigravity IDE on
-Fedora, Rocky Linux 10, and AlmaLinux 10. It automatically downloads and
-installs the latest stable Antigravity IDE binary from Google on first run.
+Antigravity IDE is a next-generation integrated development environment and
+intelligent coding companion designed by Wheelhouser LLC. Powered by cutting-edge
+autonomous AI agentic architecture, Antigravity IDE empowers developers to create,
+debug, refactor, and test complex software systems with unprecedented speed,
+precision, and confidence. Includes complete Linux desktop integration, high-resolution
+hicolor icon sets, AppStream Software Center metadata, and multi-distro launcher utilities.
 
 %prep
 cp %{SOURCE1} .
+tar -xzf %{SOURCE3} -C .
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/applications
 mkdir -p %{buildroot}%{_datadir}/pixmaps
+mkdir -p %{buildroot}%{_datadir}/metainfo
 
-# Copy icon
-cp %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/antigravity-ide-icon.png
+# Install AppStream metainfo
+install -m 644 %{SOURCE2} %{buildroot}%{_datadir}/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml
+
+# Install Pixmaps icons
+install -m 644 %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/antigravity-ide-icon.png
+install -m 644 %{SOURCE0} %{buildroot}%{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.png
+
+# Install standard Hicolor icon theme icons
+for size in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512; do
+    install -d -m 755 %{buildroot}%{_datadir}/icons/hicolor/${size}/apps
+    install -m 644 hicolor/${size}/apps/antigravity-ide-icon.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/antigravity-ide-icon.png
+    install -m 644 hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png %{buildroot}%{_datadir}/icons/hicolor/${size}/apps/com.wheelhouser.antigravity-ide.png
+done
 
 # Create launcher wrapper script in /usr/bin/antigravity-ide
 cat <<'EOF' > %{buildroot}%{_bindir}/antigravity-ide
@@ -143,13 +161,21 @@ cat <<EOF > %{buildroot}%{_datadir}/applications/antigravity-ide.desktop
 Version=1.0
 Type=Application
 Name=Antigravity IDE
-Comment=Launch Antigravity IDE
+GenericName=Integrated Development Environment
+Comment=Next-generation AI-powered coding and development environment
 Exec=%{_bindir}/antigravity-ide %u
 Icon=antigravity-ide-icon
 Terminal=false
-Categories=Development;IDE;Utility;
-MimeType=x-scheme-handler/antigravity;
+Categories=Development;IDE;Utility;TextEditor;
+MimeType=x-scheme-handler/antigravity;text/plain;
 StartupWMClass=antigravity
+StartupNotify=true
+Keywords=code;coding;editor;ide;ai;developer;agent;terminal;debug;
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=Open New Window
+Exec=%{_bindir}/antigravity-ide --new-window
 EOF
 
 %pre
@@ -214,6 +240,14 @@ else
     echo "Warning: Failed to download payload during RPM post-install; launcher wrapper will initialize payload on first run."
 fi
 
+# Update desktop and icon databases
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database %{_datadir}/applications || true
+fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -t %{_datadir}/icons/hicolor || true
+fi
+
 %postun
 if [ "$1" -eq 0 ]; then
     echo "Removing Antigravity IDE system-wide files..."
@@ -223,15 +257,27 @@ fi
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
 fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -t %{_datadir}/icons/hicolor || true
+fi
 
 %files
 %doc LICENSE
 %{_bindir}/antigravity-ide
 %{_bindir}/antigravity
+%{_datadir}/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml
 %{_datadir}/pixmaps/antigravity-ide-icon.png
+%{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.png
+%{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/applications/antigravity-ide.desktop
 
 %changelog
+* Wed Sep 23 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-24
+- Add AppStream Software Center metadata (com.wheelhouser.antigravity-ide.metainfo.xml)
+- Add complete hicolor icon sets (16x16 to 512x512) and pixmaps aliases
+- Enrich desktop launcher with GenericName, Keywords, MimeTypes, and NewWindow action
+- Update icon caches on post-install and post-uninstall
+
 * Wed Sep 23 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-23
 - Add dynamic first-run payload deployment to launcher wrapper
 - Add IPv4 enforcement (-4) and retries to avoid virtualized network connection resets

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.wheelhouser.antigravity-ide</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Antigravity IDE</name>
+  <summary>Advanced AI-Powered Agentic Coding &amp; Development Suite</summary>
+  <description>
+    <p>
+      Antigravity IDE is a next-generation integrated development environment and intelligent
+      coding companion designed by Wheelhouser LLC. Powered by cutting-edge autonomous AI agentic
+      architecture, Antigravity IDE empowers developers to create, debug, refactor, and test
+      complex software systems with unprecedented speed, precision, and confidence.
+    </p>
+    <p>
+      Whether you are building cross-platform Linux desktop applications, microservices, or
+      cloud-native architectures, Antigravity IDE streamlines your workflow with deep system
+      integration, proactive AI pairing, and multi-distro build automation.
+    </p>
+    <p>
+      Key features and capabilities:
+    </p>
+    <ul>
+      <li>Autonomous Pair Programming: Collaborate in real-time with multi-model AI coding agents that plan, write code, run tests, and diagnose issues.</li>
+      <li>Cross-Platform Packaging &amp; Build Orchestration: Native support for Linux (RPM, DEB), macOS, and Windows packaging pipelines.</li>
+      <li>Comprehensive Language Ecosystem: Full syntax highlighting, intelligent autocompletion, and language server protocol integration across Python, Rust, C/C++, Go, JavaScript, TypeScript, and more.</li>
+      <li>Integrated Terminal &amp; Process Manager: Built-in high-performance terminal emulator with multi-tab support and background task management.</li>
+      <li>Native Desktop Integration: Fully compliant with GNOME, KDE, and modern Linux desktop environments with Wayland and X11 support, high-DPI scaling, and modern dark themes.</li>
+      <li>Zero-Friction Staging &amp; Deployment: Streamlined candidate staging and live network deployment capabilities through Wheelhouser Orchestra.</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">antigravity-ide.desktop</launchable>
+  <url type="homepage">https://wheelhouser.com/products/antigravity-ide.html</url>
+  <url type="bugtracker">https://github.com/steve-rock-wheelhouser/antigravity-ide/issues</url>
+  <url type="vcs-browser">https://github.com/steve-rock-wheelhouser/antigravity-ide</url>
+  <url type="help">https://wheelhouser.com/products/antigravity-ide.html</url>
+  <url type="faq">https://wheelhouser.com/products/antigravity-ide.html</url>
+  <url type="contact">https://wheelhouser.com/#contact</url>
+  <developer id="com.wheelhouser">
+    <name>Wheelhouser LLC</name>
+  </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#4f46e5</color>
+    <color type="primary" scheme_preference="dark">#1e1b4b</color>
+  </branding>
+  <icon type="stock">antigravity-ide-icon</icon>
+  <icon type="remote">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/icon.png</icon>
+  <categories>
+    <category>Development</category>
+    <category>IDE</category>
+    <category>TextEditor</category>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>code</keyword>
+    <keyword>coding</keyword>
+    <keyword>editor</keyword>
+    <keyword>ide</keyword>
+    <keyword>developer</keyword>
+    <keyword>agent</keyword>
+    <keyword>ai</keyword>
+    <keyword>terminal</keyword>
+    <keyword>python</keyword>
+    <keyword>rust</keyword>
+    <keyword>build</keyword>
+    <keyword>wheelhouser</keyword>
+  </keywords>
+  <screenshots>
+    <screenshot type="default">
+      <caption xml:lang="en">Antigravity IDE store hero banner</caption>
+      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080.png</image>
+    </screenshot>
+    <screenshot>
+      <caption xml:lang="en">Modern AI-powered agentic coding workspace with integrated terminal and assistant</caption>
+      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/1.png</image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>antigravity-ide</binary>
+    <binary>antigravity</binary>
+    <mediatype>text/plain</mediatype>
+  </provides>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0-24" date="2026-09-23">
+      <description>
+        <p>Release 1.0.0-24: Add AppStream Software Center metadata, store hero banner, complete hicolor icon suite (16x16 to 512x512), dynamic launcher self-healing, and expanded desktop integration.</p>
+      </description>
+    </release>
+    <release version="1.0.0-23" date="2026-09-23">
+      <description>
+        <p>Release 1.0.0-23: Dynamic first-run payload deployment and local Staging Hub network cache support.</p>
+      </description>
+    </release>
+    <release version="1.0.0-22" date="2026-09-23">
+      <description>
+        <p>Release 1.0.0-22: Add native Debian 13 (Trixie) and Ubuntu 24 (.deb) packaging and build support.</p>
+      </description>
+    </release>
+    <release version="1.0.0-21" date="2026-09-21">
+      <description>
+        <p>Release 1.0.0-21: Official AlmaLinux 10 and Rocky Linux 10 packaging harmonization.</p>
+      </description>
+    </release>
+  </releases>
+</component>

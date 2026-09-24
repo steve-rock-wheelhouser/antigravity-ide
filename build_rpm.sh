@@ -24,6 +24,8 @@ SPEC_FILE="$SCRIPT_DIR/antigravity-ide.spec"
 ICON_FILE="$SCRIPT_DIR/assets/icons/antigravity-ide-icon.png"
 
 LICENSE_FILE="$SCRIPT_DIR/LICENSE"
+METAINFO_FILE="$SCRIPT_DIR/assets/com.wheelhouser.antigravity-ide.metainfo.xml"
+HICOLOR_TAR="$SCRIPT_DIR/assets/icons/hicolor-icons.tar.gz"
 
 if [ ! -f "$ICON_FILE" ]; then
     echo "Error: Cannot find icon at $ICON_FILE. Exiting."
@@ -33,6 +35,16 @@ fi
 if [ ! -f "$LICENSE_FILE" ]; then
     echo "Error: Cannot find license at $LICENSE_FILE. Exiting."
     exit 1
+fi
+
+if [ ! -f "$METAINFO_FILE" ]; then
+    echo "Error: Cannot find metainfo at $METAINFO_FILE. Exiting."
+    exit 1
+fi
+
+if [ ! -f "$HICOLOR_TAR" ]; then
+    echo "Error: Cannot find hicolor tarball at $HICOLOR_TAR. Generating..."
+    tar -czf "$HICOLOR_TAR" -C "$SCRIPT_DIR/assets/icons" hicolor
 fi
 
 if [ ! -f "$SPEC_FILE" ]; then
@@ -93,6 +105,8 @@ mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 echo "Copying sources to rpmbuild directory..."
 cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-ide-icon.png"
 cp "$LICENSE_FILE" "$RPMBUILD_DIR/SOURCES/LICENSE"
+cp "$METAINFO_FILE" "$RPMBUILD_DIR/SOURCES/com.wheelhouser.antigravity-ide.metainfo.xml"
+cp "$HICOLOR_TAR" "$RPMBUILD_DIR/SOURCES/hicolor-icons.tar.gz"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
 echo "Building RPM package(s) for target: $TARGET..."

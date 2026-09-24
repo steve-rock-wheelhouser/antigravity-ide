@@ -28,6 +28,8 @@ SPEC_FILE="$PROJECT_ROOT/antigravity-ide.spec"
 ICON_FILE="$PROJECT_ROOT/assets/icons/antigravity-ide-icon.png"
 LICENSE_FILE="$PROJECT_ROOT/LICENSE"
 
+METAINFO_FILE="$PROJECT_ROOT/assets/com.wheelhouser.antigravity-ide.metainfo.xml"
+
 if [ ! -f "$ICON_FILE" ]; then
     echo "❌ Error: Cannot find icon at $ICON_FILE" >&2
     exit 1
@@ -35,6 +37,11 @@ fi
 
 if [ ! -f "$LICENSE_FILE" ]; then
     echo "❌ Error: Cannot find license at $LICENSE_FILE" >&2
+    exit 1
+fi
+
+if [ ! -f "$METAINFO_FILE" ]; then
+    echo "❌ Error: Cannot find metainfo at $METAINFO_FILE" >&2
     exit 1
 fi
 
@@ -132,6 +139,7 @@ mkdir -p "$BUILD_ROOT/DEBIAN"
 mkdir -p "$BUILD_ROOT/usr/bin"
 mkdir -p "$BUILD_ROOT/usr/share/applications"
 mkdir -p "$BUILD_ROOT/usr/share/pixmaps"
+mkdir -p "$BUILD_ROOT/usr/share/metainfo"
 mkdir -p "$BUILD_ROOT/usr/share/doc/antigravity-ide"
 
 # 2. Generate DEBIAN/control
@@ -147,11 +155,12 @@ Depends: curl, tar, xdg-utils, desktop-file-utils, libnotify4, libxss1, libxkbfi
 Provides: antigravity (= ${APP_VERSION}-${APP_RELEASE})
 Replaces: antigravity (<= 1.0.0-12)
 Conflicts: antigravity (<= 1.0.0-12)
-Homepage: https://github.com/steve-rock-wheelhouser/antigravity-ide
-Description: Antigravity IDE launcher utility
- Open-source launcher and desktop integration utility for Antigravity IDE on
- Debian and Ubuntu. Automatically downloads and installs the official Google
- Antigravity IDE binary payload on installation.
+Homepage: https://wheelhouser.com/products/antigravity-ide.html
+Description: Advanced AI-Powered Agentic Coding & Development Suite
+ Antigravity IDE is a next-generation integrated development environment and
+ intelligent coding companion designed by Wheelhouser LLC. Powered by autonomous
+ AI agentic architecture, Antigravity IDE empowers developers to create, debug,
+ refactor, and test complex software systems with speed and confidence.
 EOF
 chmod 644 "$BUILD_ROOT/DEBIAN/control"
 
@@ -225,6 +234,13 @@ if [ "$DOWNLOADED" = true ] && [ -f "$ARCHIVE" ]; then
 else
     echo "Warning: Failed to download payload during deb post-install; launcher wrapper will initialize payload on first run."
 fi
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database /usr/share/applications || true
+fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
 exit 0
 EOF
 chmod 755 "$BUILD_ROOT/DEBIAN/postinst"
@@ -239,6 +255,9 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
 fi
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
+fi
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
 fi
 exit 0
 EOF
@@ -332,23 +351,46 @@ chmod 755 "$BUILD_ROOT/usr/bin/antigravity-ide"
 
 ln -sf antigravity-ide "$BUILD_ROOT/usr/bin/antigravity"
 
+# Install AppStream metadata
+cp -f "$METAINFO_FILE" "$BUILD_ROOT/usr/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml"
+chmod 644 "$BUILD_ROOT/usr/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml"
+
+# Install desktop launcher file
 cat <<EOF > "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
 [Desktop Entry]
 Version=1.0
 Type=Application
 Name=Antigravity IDE
-Comment=Launch Antigravity IDE
+GenericName=Integrated Development Environment
+Comment=Next-generation AI-powered coding and development environment
 Exec=/usr/bin/antigravity-ide %u
 Icon=antigravity-ide-icon
 Terminal=false
-Categories=Development;IDE;Utility;
-MimeType=x-scheme-handler/antigravity;
+Categories=Development;IDE;Utility;TextEditor;
+MimeType=x-scheme-handler/antigravity;text/plain;
 StartupWMClass=antigravity
+StartupNotify=true
+Keywords=code;coding;editor;ide;ai;developer;agent;terminal;debug;
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=Open New Window
+Exec=/usr/bin/antigravity-ide --new-window
 EOF
 chmod 644 "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
 
+# Install pixmaps icons
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide-icon.png"
-chmod 644 "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide-icon.png"
+cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/com.wheelhouser.antigravity-ide.png"
+chmod 644 "$BUILD_ROOT/usr/share/pixmaps/"*.png
+
+# Install standard Hicolor icon theme icons
+for sz in 16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512; do
+    mkdir -p "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/antigravity-ide-icon.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/antigravity-ide-icon.png"
+    cp -f "$PROJECT_ROOT/assets/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png" "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/com.wheelhouser.antigravity-ide.png"
+    chmod 644 "$BUILD_ROOT/usr/share/icons/hicolor/${sz}/apps/"*.png
+done
 
 cp -f "$LICENSE_FILE" "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
 chmod 644 "$BUILD_ROOT/usr/share/doc/antigravity-ide/copyright"
