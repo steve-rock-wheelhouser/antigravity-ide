@@ -296,6 +296,7 @@ for user_home in /home/*; do
     rm -f "$user_home/.local/share/icons/hicolor/icon-theme.cache" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/com.wheelhouser.antigravity-ide.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/applications/antigravity-ide.desktop" 2>/dev/null || true
+    rm -f "$user_home/.local/share/applications/antigravity.desktop" 2>/dev/null || true
     rm -f "$user_home/.local/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml" 2>/dev/null || true
     rm -rf "$user_home/.cache/gnome-software/screenshots" 2>/dev/null || true
 done

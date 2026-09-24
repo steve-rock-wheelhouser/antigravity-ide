@@ -162,6 +162,7 @@ chmod +x "$LAUNCHER_BIN_DIR/antigravity-ide"
 # 6. Generate the GNOME Desktop Entry
 echo "Generating .desktop launcher..."
 rm -f "$APPS_DIR/antigravity-ide.desktop" 2>/dev/null || true
+rm -f "$APPS_DIR/antigravity.desktop" 2>/dev/null || true
 cat <<EOF > "$APPS_DIR/com.wheelhouser.antigravity-ide.desktop"
 [Desktop Entry]
 Version=1.0
