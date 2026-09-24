@@ -143,6 +143,15 @@ mkdir -p "$STANDARDIZED_OUTPUT_DIR"
 cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$STANDARDIZED_OUTPUT_DIR/"
 cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$SCRIPT_DIR/"
 
+if [[ "$TARGET" == "all" ]]; then
+    mkdir -p "$SCRIPT_DIR/build-linux/Output/fedora/44"
+    mkdir -p "$SCRIPT_DIR/build-linux/Output/almalinux/10"
+    mkdir -p "$SCRIPT_DIR/build-linux/Output/rocky/10"
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*fc44*.rpm "$SCRIPT_DIR/build-linux/Output/fedora/44/" 2>/dev/null || true
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$SCRIPT_DIR/build-linux/Output/almalinux/10/" 2>/dev/null || true
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$SCRIPT_DIR/build-linux/Output/rocky/10/" 2>/dev/null || true
+fi
+
 echo "--------------------------------------------------"
 echo "RPM build complete!"
 echo "Built files:"

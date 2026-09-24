@@ -7,15 +7,14 @@
   <summary>Advanced AI-Powered Agentic Coding &amp; Development Suite</summary>
   <description>
     <p>
-      Antigravity IDE is a next-generation integrated development environment and intelligent
-      coding companion designed by Google. Powered by cutting-edge autonomous AI agentic
-      architecture, Antigravity IDE empowers developers to create, debug, refactor, and test
+      This Linux wrapper/installer from Wheelhouser LLC simplifies and automates the installation of Antigravity IDE, Google's next-generation integrated development environment and intelligent
+      coding companion. Powered by cutting-edge autonomous AI agentic architecture, Antigravity IDE empowers developers to create, debug, refactor, and test
       complex software systems with unprecedented speed, precision, and confidence.
     </p>
     <p>
       Whether you are building cross-platform Linux desktop applications, microservices, or
-      cloud-native architectures, Antigravity IDE streamlines your workflow with deep system
-      integration, proactive AI pairing, and multi-distro build automation.
+    cloud-native architectures, Antigravity IDE streamlines your workflow with deep system
+    integration, proactive AI pairing, and multi-distro build automation.
     </p>
     <p>
       Key features and capabilities:
@@ -56,7 +55,6 @@
   <categories>
     <category>Development</category>
     <category>IDE</category>
-    <category>TextEditor</category>
   </categories>
   <keywords>
     <keyword>code</keyword>
