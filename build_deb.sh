@@ -240,11 +240,34 @@ else
     echo "Warning: Failed to download payload during deb post-install; launcher wrapper will initialize payload on first run."
 fi
 
+# Deploy desktop shortcut to all interactive user Desktop folders
+if [ -d "/root/Desktop" ]; then
+    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    chmod 755 /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+fi
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    user_name=$(basename "$user_home")
+    id -u "$user_name" >/dev/null 2>&1 || continue
+    mkdir -p "$user_home/Desktop"
+    chown "$user_name:" "$user_home/Desktop" 2>/dev/null || true
+    cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/Antigravity-IDE.desktop"
+    chown "$user_name:" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    chmod 755 "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    su - "$user_name" -c "gio set '$user_home/Desktop/Antigravity-IDE.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
+done
+mkdir -p /etc/skel/Desktop
+cp -f /usr/share/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
 fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
+if command -v appstreamcli >/dev/null 2>&1; then
+    appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
 exit 0
 EOF
@@ -257,12 +280,20 @@ set -e
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
     echo "Removing Antigravity IDE system-wide files..."
     rm -rf /usr/share/antigravity-ide
+    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    for user_home in /home/*; do
+        rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    done
+    rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database /usr/share/applications || true
 fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
+fi
+if command -v appstreamcli >/dev/null 2>&1; then
+    appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
 exit 0
 EOF
@@ -365,7 +396,7 @@ cp -f "$METAINFO_FILE" "$BUILD_ROOT/usr/share/metainfo/com.wheelhouser.antigravi
 chmod 644 "$BUILD_ROOT/usr/share/metainfo/com.wheelhouser.antigravity-ide.metainfo.xml"
 
 # Install desktop launcher file
-cat <<EOF > "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
+cat <<EOF > "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.desktop"
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -373,7 +404,7 @@ Name=Antigravity IDE
 GenericName=Integrated Development Environment
 Comment=Next-generation AI-powered coding and development environment
 Exec=/usr/bin/antigravity-ide %u
-Icon=antigravity-ide-icon
+Icon=com.wheelhouser.antigravity-ide
 Terminal=false
 Categories=Development;IDE;
 MimeType=x-scheme-handler/antigravity;text/plain;
@@ -386,10 +417,10 @@ Actions=NewWindow;
 Name=Open New Window
 Exec=/usr/bin/antigravity-ide --new-window
 EOF
-chmod 644 "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
+chmod 644 "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.desktop"
 
-# Create reverse-DNS AppStream desktop launcher symlink
-ln -sf antigravity-ide.desktop "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.desktop"
+# Create legacy CLI desktop launcher alias
+ln -sf com.wheelhouser.antigravity-ide.desktop "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
 
 # Install pixmaps icons
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide-icon.png"

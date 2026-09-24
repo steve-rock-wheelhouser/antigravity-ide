@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        28%{?dist}
+Release:        29%{?dist}
 Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later
@@ -160,8 +160,8 @@ chmod 755 %{buildroot}%{_bindir}/antigravity-ide
 # Create convenience symlink /usr/bin/antigravity
 ln -s antigravity-ide %{buildroot}%{_bindir}/antigravity
 
-# Create desktop launcher file
-cat <<EOF > %{buildroot}%{_datadir}/applications/antigravity-ide.desktop
+# Create primary reverse-DNS desktop launcher file
+cat <<EOF > %{buildroot}%{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -169,7 +169,7 @@ Name=Antigravity IDE
 GenericName=Integrated Development Environment
 Comment=Next-generation AI-powered coding and development environment
 Exec=%{_bindir}/antigravity-ide %u
-Icon=antigravity-ide-icon
+Icon=com.wheelhouser.antigravity-ide
 Terminal=false
 Categories=Development;IDE;
 MimeType=x-scheme-handler/antigravity;text/plain;
@@ -183,8 +183,8 @@ Name=Open New Window
 Exec=%{_bindir}/antigravity-ide --new-window
 EOF
 
-# Create reverse-DNS AppStream desktop launcher symlink
-ln -sf antigravity-ide.desktop %{buildroot}%{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
+# Create legacy CLI desktop launcher alias
+ln -sf com.wheelhouser.antigravity-ide.desktop %{buildroot}%{_datadir}/applications/antigravity-ide.desktop
 
 %pre
 echo "Terminating any running Antigravity IDE processes..."
@@ -252,18 +252,47 @@ else
     echo "Warning: Failed to download payload during RPM post-install; launcher wrapper will initialize payload on first run."
 fi
 
-# Update desktop and icon databases
+# Deploy desktop shortcut to all interactive user Desktop folders
+if [ -d "/root/Desktop" ]; then
+    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    chmod 755 /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+fi
+for user_home in /home/*; do
+    [ -d "$user_home" ] || continue
+    user_name=$(basename "$user_home")
+    id -u "$user_name" >/dev/null 2>&1 || continue
+    mkdir -p "$user_home/Desktop"
+    chown "$user_name:" "$user_home/Desktop" 2>/dev/null || true
+    cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop "$user_home/Desktop/Antigravity-IDE.desktop"
+    chown "$user_name:" "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    chmod 755 "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    # Mark as trusted for GNOME Desktop Icons NG if gio is available
+    su - "$user_name" -c "gio set '$user_home/Desktop/Antigravity-IDE.desktop' metadata::trusted true 2>/dev/null || true" 2>/dev/null || true
+done
+mkdir -p /etc/skel/Desktop
+cp -f %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+chmod 755 /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+
+# Update desktop, icon, and AppStream databases
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database %{_datadir}/applications || true
 fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -t %{_datadir}/icons/hicolor || true
+fi
+if command -v appstreamcli >/dev/null 2>&1; then
+    appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
 
 %postun
 if [ "$1" -eq 0 ]; then
     echo "Removing Antigravity IDE system-wide files..."
     rm -rf /usr/share/antigravity-ide
+    rm -f /root/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
+    for user_home in /home/*; do
+        rm -f "$user_home/Desktop/Antigravity-IDE.desktop" 2>/dev/null || true
+    done
+    rm -f /etc/skel/Desktop/Antigravity-IDE.desktop 2>/dev/null || true
 fi
 
 if command -v update-desktop-database >/dev/null 2>&1; then
@@ -271,6 +300,9 @@ if command -v update-desktop-database >/dev/null 2>&1; then
 fi
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -f -t %{_datadir}/icons/hicolor || true
+fi
+if command -v appstreamcli >/dev/null 2>&1; then
+    appstreamcli refresh-cache --force >/dev/null 2>&1 || true
 fi
 
 %files
@@ -285,6 +317,15 @@ fi
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-29
+- Canonicalize reverse-DNS desktop launcher (com.wheelhouser.antigravity-ide.desktop)
+- Fix AppStream metadata linking with pkgname and single canonical launchable
+- Add GnomeSoftware::FeatureTile hero banner, remote icon dimensions, and screenshots
+- Deploy interactive desktop shortcuts to user Desktop folders and /etc/skel
+- Force AppStream cache refresh in post-install and post-uninstall scriptlets
+
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-28
+- Harmonize package and AppStream descriptions with Google wrapper details
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-27
 - Clarify Antigravity IDE application description and Google packaging details
 - Harmonize build-linux/build_rpm.sh symlink for automated multi-distro build matrix orchestration

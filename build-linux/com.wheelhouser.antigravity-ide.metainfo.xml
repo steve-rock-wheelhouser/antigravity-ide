@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>com.wheelhouser.antigravity-ide</id>
+  <pkgname>antigravity-ide</pkgname>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Antigravity IDE</name>
@@ -31,7 +32,6 @@
       Learn more, view comprehensive documentation, and connect with the developer community on the official Wheelhouser website and developer portal.
     </p>
   </description>
-  <launchable type="desktop-id">antigravity-ide.desktop</launchable>
   <launchable type="desktop-id">com.wheelhouser.antigravity-ide.desktop</launchable>
   <project_group>Wheelhouser</project_group>
   <url type="homepage">https://wheelhouser.com/products/antigravity-ide.html</url>
@@ -49,9 +49,13 @@
     <color type="primary" scheme_preference="light">#4f46e5</color>
     <color type="primary" scheme_preference="dark">#1e1b4b</color>
   </branding>
-  <icon type="stock">antigravity-ide-icon</icon>
+  <custom>
+    <value key="GnomeSoftware::FeatureTile">true</value>
+    <value key="GnomeSoftware::FeatureTile-css">border-color: #4f46e5;</value>
+  </custom>
   <icon type="stock">com.wheelhouser.antigravity-ide</icon>
-  <icon type="remote">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/icon.png</icon>
+  <icon type="stock">antigravity-ide-icon</icon>
+  <icon type="remote" width="128" height="128">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/icon.png</icon>
   <categories>
     <category>Development</category>
     <category>IDE</category>
@@ -73,22 +77,23 @@
   <screenshots>
     <screenshot type="default">
       <caption xml:lang="en">Antigravity IDE store hero banner</caption>
-      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080.png</image>
+      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080.png</image>
     </screenshot>
     <screenshot>
       <caption xml:lang="en">Modern AI-powered agentic coding workspace with integrated terminal and editor</caption>
-      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/1.png</image>
+      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/1.png</image>
     </screenshot>
     <screenshot>
       <caption xml:lang="en">Autonomous AI pair programmer with live code refactoring and test suite execution</caption>
-      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/2.png</image>
+      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/2.png</image>
     </screenshot>
     <screenshot>
       <caption xml:lang="en">Integrated build orchestration terminal and multi-distro QA verification fleet</caption>
-      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/3.png</image>
+      <image width="1920" height="1080">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/3.png</image>
     </screenshot>
   </screenshots>
   <provides>
+    <id>antigravity-ide.desktop</id>
     <binary>antigravity-ide</binary>
     <binary>antigravity</binary>
     <mediatype>text/plain</mediatype>
@@ -104,6 +109,12 @@
   </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-29" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-29: Fix GNOME Software Center metadata linking, restore primary AppStream desktop ID, add GnomeSoftware::FeatureTile hero banner, and deploy interactive desktop shortcuts.</p>
+      </description>
+    </release>
     <release version="1.0.0-28" date="2026-09-24">
       <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
       <description>
