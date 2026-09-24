@@ -8,7 +8,7 @@
   <description>
     <p>
       Antigravity IDE is a next-generation integrated development environment and intelligent
-      coding companion designed by Wheelhouser LLC. Powered by cutting-edge autonomous AI agentic
+      coding companion designed by Google. Powered by cutting-edge autonomous AI agentic
       architecture, Antigravity IDE empowers developers to create, debug, refactor, and test
       complex software systems with unprecedented speed, precision, and confidence.
     </p>
@@ -28,28 +28,35 @@
       <li>Native Desktop Integration: Fully compliant with GNOME, KDE, and modern Linux desktop environments with Wayland and X11 support, high-DPI scaling, and modern dark themes.</li>
       <li>Zero-Friction Staging &amp; Deployment: Streamlined candidate staging and live network deployment capabilities through Wheelhouser Orchestra.</li>
     </ul>
+    <p>
+      Learn more, view comprehensive documentation, and connect with the developer community on the official Wheelhouser website and developer portal.
+    </p>
   </description>
   <launchable type="desktop-id">antigravity-ide.desktop</launchable>
+  <launchable type="desktop-id">com.wheelhouser.antigravity-ide.desktop</launchable>
+  <project_group>Wheelhouser</project_group>
   <url type="homepage">https://wheelhouser.com/products/antigravity-ide.html</url>
   <url type="bugtracker">https://github.com/steve-rock-wheelhouser/antigravity-ide/issues</url>
   <url type="vcs-browser">https://github.com/steve-rock-wheelhouser/antigravity-ide</url>
   <url type="help">https://wheelhouser.com/products/antigravity-ide.html</url>
   <url type="faq">https://wheelhouser.com/products/antigravity-ide.html</url>
   <url type="contact">https://wheelhouser.com/#contact</url>
+  <url type="contribute">https://github.com/steve-rock-wheelhouser/antigravity-ide/blob/main/CONTRIBUTING.md</url>
   <developer id="com.wheelhouser">
     <name>Wheelhouser LLC</name>
+    <url>https://wheelhouser.com</url>
   </developer>
   <branding>
     <color type="primary" scheme_preference="light">#4f46e5</color>
     <color type="primary" scheme_preference="dark">#1e1b4b</color>
   </branding>
   <icon type="stock">antigravity-ide-icon</icon>
+  <icon type="stock">com.wheelhouser.antigravity-ide</icon>
   <icon type="remote">https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/icon.png</icon>
   <categories>
     <category>Development</category>
     <category>IDE</category>
     <category>TextEditor</category>
-    <category>Utility</category>
   </categories>
   <keywords>
     <keyword>code</keyword>
@@ -71,17 +78,50 @@
       <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/store_hero_banner_1920x1080.png</image>
     </screenshot>
     <screenshot>
-      <caption xml:lang="en">Modern AI-powered agentic coding workspace with integrated terminal and assistant</caption>
+      <caption xml:lang="en">Modern AI-powered agentic coding workspace with integrated terminal and editor</caption>
       <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/1.png</image>
+    </screenshot>
+    <screenshot>
+      <caption xml:lang="en">Autonomous AI pair programmer with live code refactoring and test suite execution</caption>
+      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/2.png</image>
+    </screenshot>
+    <screenshot>
+      <caption xml:lang="en">Integrated build orchestration terminal and multi-distro QA verification fleet</caption>
+      <image>https://raw.githubusercontent.com/steve-rock-wheelhouser/wheelhouser-website/main/images/antigravity-ide/screenshots/3.png</image>
     </screenshot>
   </screenshots>
   <provides>
     <binary>antigravity-ide</binary>
     <binary>antigravity</binary>
     <mediatype>text/plain</mediatype>
+    <mediatype>x-scheme-handler/antigravity</mediatype>
   </provides>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">1024</display_length>
+  </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-26" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-26: Complete AppStream 1.0 software center metadata suite, expanded screenshot gallery, dual reverse-DNS desktop launchers, and full hicolor icons.</p>
+        <ul>
+          <li>Full AppStream 1.0 specification compliance verified across GNOME Software and KDE Discover.</li>
+          <li>Enriched visual assets including 1920x1080 store hero banner, high-DPI icons, and screenshots.</li>
+          <li>Dual desktop launcher integration supporting both legacy CLI aliases and modern reverse-DNS IDs.</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.0.0-25" date="2026-09-24">
+      <description>
+        <p>Release 1.0.0-25: Multi-distro package build harmonization and automated QA verification across Fedora, Rocky, Alma, Debian, and Ubuntu.</p>
+      </description>
+    </release>
     <release version="1.0.0-24" date="2026-09-23">
       <description>
         <p>Release 1.0.0-24: Add AppStream Software Center metadata, store hero banner, complete hicolor icon suite (16x16 to 512x512), dynamic launcher self-healing, and expanded desktop integration.</p>

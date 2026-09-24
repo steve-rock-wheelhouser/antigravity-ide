@@ -1,6 +1,6 @@
 Name:           antigravity-ide
 Version:        1.0.0
-Release:        25%{?dist}
+Release:        26%{?dist}
 Summary:        Advanced AI-Powered Agentic Coding & Development Suite
 
 License:        GPL-3.0-or-later
@@ -102,16 +102,20 @@ mkdir -p "$TARGET_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
 REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
 if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
     DOWNLOADED=true
 elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
     echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
     DOWNLOADED=true
 elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
@@ -166,7 +170,7 @@ Comment=Next-generation AI-powered coding and development environment
 Exec=%{_bindir}/antigravity-ide %u
 Icon=antigravity-ide-icon
 Terminal=false
-Categories=Development;IDE;Utility;TextEditor;
+Categories=Development;IDE;TextEditor;
 MimeType=x-scheme-handler/antigravity;text/plain;
 StartupWMClass=antigravity
 StartupNotify=true
@@ -177,6 +181,9 @@ Actions=NewWindow;
 Name=Open New Window
 Exec=%{_bindir}/antigravity-ide --new-window
 EOF
+
+# Create reverse-DNS AppStream desktop launcher symlink
+ln -sf antigravity-ide.desktop %{buildroot}%{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %pre
 echo "Terminating any running Antigravity IDE processes..."
@@ -189,16 +196,20 @@ mkdir -p "$INSTALL_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
 REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
 if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    echo "Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
     DOWNLOADED=true
 elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
     echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
     DOWNLOADED=true
 elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
@@ -270,8 +281,18 @@ fi
 %{_datadir}/pixmaps/com.wheelhouser.antigravity-ide.png
 %{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/applications/antigravity-ide.desktop
+%{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-26
+- Complete AppStream 1.0 software center metadata suite and expanded screenshot gallery
+- Dual reverse-DNS desktop launchers (com.wheelhouser.antigravity-ide.desktop symlink)
+- Clean up desktop file categories for full FreeDesktop menu specification compliance
+- Add secure Let's Encrypt HTTPS staging mirror to payload fetch fallback chain
+
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-25
+- Multi-distro package build harmonization and automated QA verification across Fedora, Rocky, Alma, Debian, and Ubuntu
+
 * Wed Sep 23 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-24
 - Add AppStream Software Center metadata (com.wheelhouser.antigravity-ide.metainfo.xml)
 - Add complete hicolor icon sets (16x16 to 512x512) and pixmaps aliases

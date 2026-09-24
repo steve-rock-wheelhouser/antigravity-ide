@@ -187,16 +187,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
 REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
 if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    echo "Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
     DOWNLOADED=true
 elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
     echo "Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
     DOWNLOADED=true
 elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
@@ -299,16 +303,20 @@ mkdir -p "$TARGET_DIR"
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-LOCAL_URL1="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL2="http://10.0.0.1/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+LOCAL_URL3="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
 REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
 if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null; then
-    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"
     DOWNLOADED=true
 elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL2" 2>/dev/null; then
+    echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.1)"
+    DOWNLOADED=true
+elif curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL3" 2>/dev/null; then
     echo "✅ Downloaded payload from Wheelhouser Staging Hub (10.0.0.166)"
     DOWNLOADED=true
 elif curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL"; then
@@ -366,7 +374,7 @@ Comment=Next-generation AI-powered coding and development environment
 Exec=/usr/bin/antigravity-ide %u
 Icon=antigravity-ide-icon
 Terminal=false
-Categories=Development;IDE;Utility;TextEditor;
+Categories=Development;IDE;TextEditor;
 MimeType=x-scheme-handler/antigravity;text/plain;
 StartupWMClass=antigravity
 StartupNotify=true
@@ -378,6 +386,9 @@ Name=Open New Window
 Exec=/usr/bin/antigravity-ide --new-window
 EOF
 chmod 644 "$BUILD_ROOT/usr/share/applications/antigravity-ide.desktop"
+
+# Create reverse-DNS AppStream desktop launcher symlink
+ln -sf antigravity-ide.desktop "$BUILD_ROOT/usr/share/applications/com.wheelhouser.antigravity-ide.desktop"
 
 # Install pixmaps icons
 cp -f "$ICON_FILE" "$BUILD_ROOT/usr/share/pixmaps/antigravity-ide-icon.png"
