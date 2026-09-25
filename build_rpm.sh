@@ -156,22 +156,25 @@ if [ -f /etc/os-release ]; then
     DISTRO_VER=$(echo "${VERSION_ID:-10}" | cut -d. -f1)
 fi
 
-STANDARDIZED_OUTPUT_DIR="$PROJECT_ROOT/build-linux/Output/$DISTRO_NAME/$DISTRO_VER"
-mkdir -p "$STANDARDIZED_OUTPUT_DIR"
-cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$STANDARDIZED_OUTPUT_DIR/"
-cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$PROJECT_ROOT/"
+mkdir -p "$PROJECT_ROOT/build-linux/Output/fedora/44"
+mkdir -p "$PROJECT_ROOT/build-linux/Output/almalinux/10"
+mkdir -p "$PROJECT_ROOT/build-linux/Output/rocky/10"
 
 if [[ "$TARGET" == "all" ]]; then
-    mkdir -p "$PROJECT_ROOT/build-linux/Output/fedora/44"
-    mkdir -p "$PROJECT_ROOT/build-linux/Output/almalinux/10"
-    mkdir -p "$PROJECT_ROOT/build-linux/Output/rocky/10"
     cp -f "$RPMBUILD_DIR"/RPMS/*/*fc44*.rpm "$PROJECT_ROOT/build-linux/Output/fedora/44/" 2>/dev/null || true
     cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/almalinux/10/" 2>/dev/null || true
     cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/rocky/10/" 2>/dev/null || true
+elif [[ "$TARGET" == "fedora" ]]; then
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*fc44*.rpm "$PROJECT_ROOT/build-linux/Output/fedora/44/" 2>/dev/null || true
+elif [[ "$TARGET" == "almalinux" ]]; then
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/almalinux/10/" 2>/dev/null || true
+else
+    cp -f "$RPMBUILD_DIR"/RPMS/*/*el10*.rpm "$PROJECT_ROOT/build-linux/Output/rocky/10/" 2>/dev/null || true
 fi
+cp -f "$RPMBUILD_DIR"/RPMS/*/*.rpm "$PROJECT_ROOT/" 2>/dev/null || true
 
 echo "--------------------------------------------------"
 echo "RPM build complete!"
 echo "Built files:"
-ls -la "$STANDARDIZED_OUTPUT_DIR"/*.rpm
+ls -la "$PROJECT_ROOT/build-linux/Output/$DISTRO_NAME/$DISTRO_VER"/*.rpm 2>/dev/null || ls -la "$PROJECT_ROOT"/antigravity-ide*.rpm
 echo "--------------------------------------------------"
