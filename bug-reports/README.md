@@ -2,7 +2,8 @@
 
 This directory maintains the file-based QA and issue tracking history for **antigravity-ide**.
 Tickets are created automatically by the Wheelhouser Automated Fleet QA Harness
-(`orchestra/scripts/test_candidate_fleet.sh`) or manually filed by maintainers.
+(`orchestra/scripts/test_candidate_fleet.sh`), via the Staging Hub (`staging.wheelhouser.com`),
+or manually filed by maintainers.
 
 ## Directory Structure
 ```text
@@ -14,12 +15,16 @@ bug-reports/
 │   │   ├── fedora/          # Fedora Linux
 │   │   ├── rocky/           # Rocky Linux (Enterprise Linux)
 │   │   └── almalinux/       # AlmaLinux (Enterprise Linux)
-│   ├── windows/             # Windows sideload / MSIX install issues
-│   └── macos/               # macOS DMG / App bundle verification issues
+│   ├── macos/
+│   │   ├── arm64/           # Apple Silicon (M1/M2/M3/M4)
+│   │   └── x86_64/          # Intel (x86_64)
+│   └── windows/             # Windows sideload / MSIX install issues
 ├── run-time/                 # Post-installation execution errors (crashes, missing DLLs/so, timeouts)
 │   ├── linux/ (distros)
-│   ├── windows/
-│   └── macos/
+│   ├── macos/
+│   │   ├── arm64/
+│   │   └── x86_64/
+│   └── windows/
 └── marketing/                # Store packaging and metadata readiness
     ├── metadata/            # AppStream metainfo.xml, AppxManifest.xml, Info.plist
     ├── assets/              # Icons, banners, screenshot requirements
@@ -37,6 +42,7 @@ severity: "high"              # low | medium | high | critical
 project: "antigravity-ide"
 package: "package-filename.rpm"
 os: "linux"                   # linux | windows | macos
+arch: "arm64"                 # arm64 | x86_64 (primarily macOS / Windows)
 distro: "rocky"               # debian | ubuntu | fedora | rocky | almalinux | windows | macos
 distro_version: "10.2"
 node: "user@10.0.0.166:2202"
