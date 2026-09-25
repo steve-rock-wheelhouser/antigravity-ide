@@ -166,7 +166,7 @@ Priority: optional
 Architecture: all
 Essential: no
 Maintainer: Steve Rock <steve.rock@wheelhouser.com>
-Depends: curl, tar, xdg-utils, desktop-file-utils, libnotify4, libxss1, libxkbfile1, libgbm1, libnss3, gnome-keyring, libsecret-1-0, libasound2t64 | libasound2
+Depends: curl, tar, xdg-utils, desktop-file-utils, libnotify4, libxkbfile1, libgbm1, libnss3, gnome-keyring, libsecret-1-0, libasound2t64 | libasound2
 Provides: antigravity (= ${APP_VERSION}-${APP_RELEASE})
 Replaces: antigravity (<= 1.0.0-12)
 Conflicts: antigravity (<= 1.0.0-12)

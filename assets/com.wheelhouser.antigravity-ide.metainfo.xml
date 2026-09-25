@@ -109,6 +109,12 @@
   </requires>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.0.0-38" date="2026-09-24">
+      <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
+      <description>
+        <p>Release 1.0.0-38: Eliminate obsolete libXScrnSaver/libxss dependency to support clean installation on Enterprise Linux 10 without requiring EPEL.</p>
+      </description>
+    </release>
     <release version="1.0.0-37" date="2026-09-24">
       <url type="details">https://github.com/steve-rock-wheelhouser/antigravity-ide/releases</url>
       <description>

@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 37
+%define release_number 38
 
 Name:           antigravity-ide
 Version:        1.0.0
@@ -29,7 +29,6 @@ Requires:       desktop-file-utils
 # Runtime Electron, audio, and keyring dependencies
 Requires:       alsa-lib
 Requires:       libnotify
-Requires:       libXScrnSaver
 Requires:       libxkbfile
 Requires:       mesa-libgbm
 Requires:       nss
@@ -433,6 +432,9 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-38
+- Eliminate obsolete libXScrnSaver requirement to support native Enterprise Linux 10 BaseOS/AppStream installations without EPEL
+
 * Thu Sep 24 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.0.0-37
 - Align StartupWMClass with window app_id (antigravity-ide) for GNOME Wayland window grouping and dock tracking
 - Standardize desktop shortcut deployment to reverse-DNS convention (com.wheelhouser.antigravity-ide.desktop)
