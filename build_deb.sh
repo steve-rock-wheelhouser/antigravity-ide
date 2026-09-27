@@ -132,7 +132,11 @@ DISTRO_NAME="debian"
 DISTRO_VER="13"
 if [ -f /etc/os-release ]; then
     DISTRO_NAME="$(grep -E '^ID=' /etc/os-release | head -n 1 | cut -d= -f2 | tr -d '\"')"
-    DISTRO_VER="$(grep -E '^VERSION_ID=' /etc/os-release | head -n 1 | cut -d= -f2 | tr -d '\"' | cut -d. -f1)"
+    if [ "$DISTRO_NAME" = "ubuntu" ]; then
+        DISTRO_VER="26.04"
+    else
+        DISTRO_VER="$(grep -E '^VERSION_ID=' /etc/os-release | head -n 1 | cut -d= -f2 | tr -d '\"' | cut -d. -f1)"
+    fi
 fi
 DISTRO_NAME="${DISTRO_NAME:-debian}"
 DISTRO_VER="${DISTRO_VER:-13}"
@@ -585,11 +589,15 @@ STANDARDIZED_OUTPUT_DIR="$OUTPUT_BASE/$DISTRO_NAME/$DISTRO_VER"
 mkdir -p "$STANDARDIZED_OUTPUT_DIR"
 cp -f "$LOCAL_DEB" "$STANDARDIZED_OUTPUT_DIR/"
 
+# Ensure legacy ubuntu paths are deleted if they exist
+rm -rf "$OUTPUT_BASE/ubuntu/24" "$OUTPUT_BASE/ubuntu/26"
+rm -f "$OUTPUT_BASE/ubuntu/"*.deb
+
 # If building on debian, also mirror to ubuntu if target is all (or vice-versa)
 if [[ "$TARGET" == "all" ]]; then
     if [ "$DISTRO_NAME" = "debian" ]; then
-        mkdir -p "$OUTPUT_BASE/ubuntu/24"
-        cp -f "$LOCAL_DEB" "$OUTPUT_BASE/ubuntu/24/"
+        mkdir -p "$OUTPUT_BASE/ubuntu/26.04"
+        cp -f "$LOCAL_DEB" "$OUTPUT_BASE/ubuntu/26.04/"
     elif [ "$DISTRO_NAME" = "ubuntu" ]; then
         mkdir -p "$OUTPUT_BASE/debian/13"
         cp -f "$LOCAL_DEB" "$OUTPUT_BASE/debian/13/"
