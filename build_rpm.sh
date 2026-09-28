@@ -141,12 +141,24 @@ else
     rpmbuild --define "_topdir $RPMBUILD_DIR" --define "dist .el10" -ba "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 fi
 
-if command -v rpmsign >/dev/null 2>&1; then
-    echo "Signing built RPMs..."
-    rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm 2>/dev/null || true
-else
-    echo "==> Note: rpmsign not present on this node; package will be signed centrally by repository orchestrator."
+echo "==> Signing built RPMs..."
+if ! command -v rpmsign >/dev/null 2>&1; then
+    echo "FATAL: rpmsign is required to sign packages but not found on this system." >&2
+    exit 1
 fi
+
+rpmsign --addsign "$RPMBUILD_DIR"/RPMS/*/*.rpm
+
+echo "==> Verifying package cryptographic signatures..."
+for pkg in "$RPMBUILD_DIR"/RPMS/*/*.rpm; do
+    [ -f "$pkg" ] || continue
+    echo "    Checking: $(basename "$pkg")"
+    if ! rpm -Kv "$pkg" | grep -qiE "Header.*Signature.*OK"; then
+        echo "FATAL: Signature verification failed for $pkg!" >&2
+        rpm -Kv "$pkg" >&2
+        exit 1
+    fi
+done
 
 DISTRO_NAME="rocky"
 DISTRO_VER="10"
