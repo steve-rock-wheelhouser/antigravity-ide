@@ -1,5 +1,5 @@
 # Define the release number macro for auto-incrementing
-%define release_number 2
+%define release_number 3
 
 Name:           antigravity-ide
 Version:        1.1.0
@@ -146,36 +146,7 @@ trap 'rm -rf "$TEMP_DIR"' EXIT INT TERM HUP
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
-# 1. Check for pre-existing extracted payload directory first
-for candidate_dir in \
-    /root/Downloads/"Antigravity IDE" \
-    /home/*/Downloads/"Antigravity IDE"; do
-    if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
-        echo "Found pre-extracted payload at $candidate_dir"
-        rm -rf "$INSTALL_DIR"/*
-        cp -r "$candidate_dir/"* "$INSTALL_DIR/"
-        DOWNLOADED=true
-        break
-    fi
-done
-
-# 2. Check for pre-existing local tarball download
-if [ "$DOWNLOADED" = false ]; then
-    for candidate in \
-        /root/Downloads/"Antigravity IDE.tar.gz" \
-        /root/Downloads/"Antigravity-IDE.tar.gz" \
-        /home/*/Downloads/"Antigravity IDE.tar.gz" \
-        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
-        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
-            echo "Found valid cached payload at $candidate"
-            cp "$candidate" "$ARCHIVE"
-            DOWNLOADED=true
-            break
-        fi
-    done
-fi
-
-# 3. Fallback to network download if needed
+# 1. Fetch latest payload from network (Staging Hub or Google CDN)
 if [ "$DOWNLOADED" = false ]; then
     LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
     LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
@@ -199,6 +170,37 @@ if [ "$DOWNLOADED" = false ]; then
             DOWNLOADED=true
         fi
     fi
+fi
+
+# 2. Offline fallback: check for pre-existing local tarball download
+if [ "$DOWNLOADED" = false ]; then
+    for candidate in \
+        /root/Downloads/"Antigravity IDE.tar.gz" \
+        /root/Downloads/"Antigravity-IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+            echo "Network unreachable; using cached payload at $candidate"
+            cp "$candidate" "$ARCHIVE"
+            DOWNLOADED=true
+            break
+        fi
+    done
+fi
+
+# 3. Offline fallback: check for pre-existing extracted payload directory
+if [ "$DOWNLOADED" = false ]; then
+    for candidate_dir in \
+        /root/Downloads/"Antigravity IDE" \
+        /home/*/Downloads/"Antigravity IDE"; do
+        if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
+            echo "Network unreachable; using pre-extracted payload at $candidate_dir"
+            rm -rf "$INSTALL_DIR"/*
+            cp -r "$candidate_dir/"* "$INSTALL_DIR/"
+            DOWNLOADED=true
+            break
+        fi
+    done
 fi
 
 # 4. Extract archive if payload was acquired via tarball
@@ -337,6 +339,12 @@ touch %{_datadir}/icons/hicolor &>/dev/null || true
 %{_datadir}/applications/com.wheelhouser.antigravity-ide.desktop
 
 %changelog
+* Wed Oct 28 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.1.0-3
+- Prioritize upstream network payload acquisition over local Downloads cache in --update and post-install
+- Relegate local ~/Downloads archives to offline fallback to prevent stale payload downgrades
+- Fix argument forwarding when re-executing antigravity-ide --update via sudo
+- Enforce root:root ownership on system payload directory during --update
+
 * Wed Oct 28 2026 Steve Rock <steve.rock@wheelhouser.com> - 1.1.0-2
 - Fix payload extraction during RPM package upgrade when chrome-sandbox is present
 - Add /var/tmp staging fallback when /tmp has insufficient free space (< 2.5GB)

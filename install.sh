@@ -47,18 +47,14 @@ fi
 ARCHIVE_ARG="${1:-}"
 DOWNLOAD_URL=""
 DOWNLOAD_ARCHIVE=""
+DEFAULT_LOCAL="$HOME/Downloads/Antigravity IDE.tar.gz"
 
 if [[ "$ARCHIVE_ARG" =~ ^https?:// ]]; then
     DOWNLOAD_URL="$ARCHIVE_ARG"
 elif [[ -n "$ARCHIVE_ARG" ]]; then
     DOWNLOAD_ARCHIVE="$ARCHIVE_ARG"
 else
-    DEFAULT_LOCAL="$HOME/Downloads/Antigravity IDE.tar.gz"
-    if [ -f "$DEFAULT_LOCAL" ]; then
-        DOWNLOAD_ARCHIVE="$DEFAULT_LOCAL"
-    else
-        DOWNLOAD_URL="$DEFAULT_URL"
-    fi
+    DOWNLOAD_URL="$DEFAULT_URL"
 fi
 
 # Resolve the icon relative to the script directory to make the installer portable
@@ -77,8 +73,12 @@ echo "Starting Antigravity IDE deployment..."
 if [ -n "$DOWNLOAD_URL" ]; then
     echo "Downloading Antigravity IDE package..."
     TEMP_DOWNLOAD=$(mktemp -p "$TMP_BASE" -t Antigravity-IDE-XXXXXX.tar.gz)
-    if curl -sSL --retry 3 --retry-delay 2 -o "$TEMP_DOWNLOAD" "$DOWNLOAD_URL"; then
+    if curl -sSL --retry 3 --retry-delay 2 -o "$TEMP_DOWNLOAD" "$DOWNLOAD_URL" && [ -f "$TEMP_DOWNLOAD" ] && gzip -t "$TEMP_DOWNLOAD" 2>/dev/null; then
         DOWNLOAD_ARCHIVE="$TEMP_DOWNLOAD"
+    elif [ -z "$ARCHIVE_ARG" ] && [ -f "$DEFAULT_LOCAL" ] && gzip -t "$DEFAULT_LOCAL" 2>/dev/null; then
+        echo "Network download failed; falling back to cached local archive at $DEFAULT_LOCAL"
+        rm -f "$TEMP_DOWNLOAD"
+        DOWNLOAD_ARCHIVE="$DEFAULT_LOCAL"
     else
         echo "Error: Failed to download Antigravity IDE from $DOWNLOAD_URL"
         rm -f "$TEMP_DOWNLOAD"

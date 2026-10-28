@@ -235,35 +235,7 @@ trap cleanup EXIT INT TERM HUP
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
 
-# 1. Check for pre-existing extracted payload directory first
-for candidate_dir in \
-    /root/Downloads/"Antigravity IDE" \
-    /home/*/Downloads/"Antigravity IDE"; do
-    if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
-        echo "Found pre-extracted payload at $candidate_dir"
-        rm -rf "$INSTALL_DIR"/*
-        cp -r "$candidate_dir/"* "$INSTALL_DIR/"
-        DOWNLOADED=true
-        break
-    fi
-done
-
-# 2. Check for pre-existing local download first
-if [ "$DOWNLOADED" = false ]; then
-    for candidate in \
-        /root/Downloads/"Antigravity IDE.tar.gz" \
-        /root/Downloads/"Antigravity-IDE.tar.gz" \
-        /home/*/Downloads/"Antigravity IDE.tar.gz" \
-        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
-        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
-            echo "Found valid cached payload at $candidate"
-            cp "$candidate" "$ARCHIVE"
-            DOWNLOADED=true
-            break
-        fi
-    done
-fi
-
+# 1. Fetch latest payload from network (Staging Hub or Google CDN)
 if [ "$DOWNLOADED" = false ]; then
     LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
     LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
@@ -287,6 +259,37 @@ if [ "$DOWNLOADED" = false ]; then
             DOWNLOADED=true
         fi
     fi
+fi
+
+# 2. Offline fallback: check for pre-existing local tarball download
+if [ "$DOWNLOADED" = false ]; then
+    for candidate in \
+        /root/Downloads/"Antigravity IDE.tar.gz" \
+        /root/Downloads/"Antigravity-IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity IDE.tar.gz" \
+        /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+        if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+            echo "Network unreachable; using cached payload at $candidate"
+            cp "$candidate" "$ARCHIVE"
+            DOWNLOADED=true
+            break
+        fi
+    done
+fi
+
+# 3. Offline fallback: check for pre-existing extracted payload directory
+if [ "$DOWNLOADED" = false ]; then
+    for candidate_dir in \
+        /root/Downloads/"Antigravity IDE" \
+        /home/*/Downloads/"Antigravity IDE"; do
+        if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
+            echo "Network unreachable; using pre-extracted payload at $candidate_dir"
+            rm -rf "$INSTALL_DIR"/*
+            cp -r "$candidate_dir/"* "$INSTALL_DIR/"
+            DOWNLOADED=true
+            break
+        fi
+    done
 fi
 
 if [ -f "$ARCHIVE" ]; then

@@ -153,6 +153,7 @@ do_check_update() {
 }
 
 do_update() {
+    local orig_args=("$@")
     local custom_source=""
     local force_flag=false
 
@@ -186,7 +187,7 @@ do_update() {
             if command -v sudo >/dev/null 2>&1; then
                 echo "System installation update requires administrator privileges."
                 echo "Re-executing with sudo..."
-                exec sudo "$0" "$@"
+                exec sudo "$0" --update "${orig_args[@]}"
             else
                 echo "❌ Error: Updating system installation ($target_dir) requires root privileges." >&2
                 echo "Please run: sudo antigravity-ide --update" >&2
@@ -248,25 +249,7 @@ do_update() {
         fi
     fi
 
-    # 2. Check local download caches if not already acquired
-    if [ "$acquired" = false ]; then
-        for candidate in \
-            "$HOME/Downloads/Antigravity IDE.tar.gz" \
-            "$HOME/Downloads/Antigravity-IDE.tar.gz" \
-            /root/Downloads/"Antigravity IDE.tar.gz" \
-            /root/Downloads/"Antigravity-IDE.tar.gz" \
-            /home/*/Downloads/"Antigravity IDE.tar.gz" \
-            /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
-            if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
-                echo "✅ Found valid cached payload at $candidate"
-                cp -f "$candidate" "$archive"
-                acquired=true
-                break
-            fi
-        done
-    fi
-
-    # 3. Check Staging Hub & Official CDN
+    # 2. Check Staging Hub & Official CDN
     if [ "$acquired" = false ]; then
         echo "Checking local staging hubs..."
         if curl -s -f -m 3 --connect-timeout 2 -o "$archive" "$STAGING_URL_PRIMARY" 2>/dev/null && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
@@ -286,6 +269,24 @@ do_update() {
                 acquired=true
             fi
         fi
+    fi
+
+    # 3. Offline fallback: check local download caches only if network acquisition failed
+    if [ "$acquired" = false ]; then
+        for candidate in \
+            "$HOME/Downloads/Antigravity IDE.tar.gz" \
+            "$HOME/Downloads/Antigravity-IDE.tar.gz" \
+            /root/Downloads/"Antigravity IDE.tar.gz" \
+            /root/Downloads/"Antigravity-IDE.tar.gz" \
+            /home/*/Downloads/"Antigravity IDE.tar.gz" \
+            /home/*/Downloads/"Antigravity-IDE.tar.gz"; do
+            if [ -f "$candidate" ] && gzip -t "$candidate" 2>/dev/null; then
+                echo "⚠️  Network unreachable; using cached local payload at $candidate"
+                cp -f "$candidate" "$archive"
+                acquired=true
+                break
+            fi
+        done
     fi
 
     if [ "$acquired" = false ]; then
@@ -332,7 +333,10 @@ do_update() {
     # Wipe and copy new payload
     rm -rf "$target_dir"/*
     if cp -a "$source_dir/." "$target_dir/"; then
-        # Ensure correct file permissions
+        # Ensure correct file ownership and permissions
+        if [ "$(id -u)" -eq 0 ]; then
+            chown -R root:root "$target_dir"
+        fi
         chmod -R u+rwX,go+rX "$target_dir"
         chmod +x "$target_dir/antigravity-ide" 2>/dev/null || true
         chmod +x "$target_dir/bin/antigravity-ide" 2>/dev/null || true
