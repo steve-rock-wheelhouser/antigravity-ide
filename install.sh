@@ -145,9 +145,12 @@ if [ -f "$SOURCE_ICON" ]; then
 fi
 
 # 5. Generate the command wrapper in local bin
-echo "Generating command wrapper in $LAUNCHER_BIN_DIR/antigravity-ide..."
-rm -rf "$LAUNCHER_BIN_DIR/antigravity-ide"
-cat <<EOF > "$LAUNCHER_BIN_DIR/antigravity-ide"
+echo "Installing command wrapper in $LAUNCHER_BIN_DIR/antigravity-ide..."
+rm -f "$LAUNCHER_BIN_DIR/antigravity-ide"
+if [ -f "$SCRIPT_DIR/src/antigravity-ide.sh" ]; then
+    install -m 755 "$SCRIPT_DIR/src/antigravity-ide.sh" "$LAUNCHER_BIN_DIR/antigravity-ide"
+else
+    cat <<EOF > "$LAUNCHER_BIN_DIR/antigravity-ide"
 #!/usr/bin/bash
 if [ -x "$INSTALL_DIR/bin/antigravity-ide" ]; then
     exec "$INSTALL_DIR/bin/antigravity-ide" "\$@"
@@ -155,7 +158,8 @@ elif [ -x "$INSTALL_DIR/antigravity-ide" ]; then
     exec "$INSTALL_DIR/antigravity-ide" "\$@"
 fi
 EOF
-chmod +x "$LAUNCHER_BIN_DIR/antigravity-ide"
+    chmod +x "$LAUNCHER_BIN_DIR/antigravity-ide"
+fi
 
 # 6. Generate the GNOME Desktop Entry
 echo "Generating .desktop launcher..."

@@ -88,6 +88,46 @@ Once installed, you can launch the IDE via:
 
 ---
 
+## Updating Google Antigravity IDE Core Payload
+
+The `antigravity-ide` launcher provides built-in CLI management commands to check and update the Google Antigravity IDE core application payload:
+
+### 1. Update Core Payload
+To update the core payload to the latest stable release:
+```bash
+# System-wide installations (/usr/share/antigravity-ide):
+sudo antigravity-ide --update
+
+# Running without sudo automatically detects system installation and elevates:
+antigravity-ide --update
+```
+
+You can also update or reinstall from a custom local tarball or direct download URL:
+```bash
+# Update from local archive:
+antigravity-ide --update /path/to/Antigravity-IDE.tar.gz
+
+# Update from custom URL:
+antigravity-ide --update https://example.com/downloads/Antigravity-IDE.tar.gz
+```
+
+### 2. Check for Updates
+To check the currently installed core version and verify upstream release status without modifying files:
+```bash
+antigravity-ide --check-update
+```
+
+### 3. Display Versions & Launcher Options
+```bash
+# Display launcher wrapper version and installed Google core version:
+antigravity-ide --wrapper-version
+
+# Display launcher management options:
+antigravity-ide --help-launcher
+```
+
+---
+
 ## Development & Maintenance
 
 ### Prerequisites

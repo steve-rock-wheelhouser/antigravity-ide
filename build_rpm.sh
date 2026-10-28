@@ -31,6 +31,7 @@ ICON_FILE="$PROJECT_ROOT/assets/icons/antigravity-ide-icon.png"
 LICENSE_FILE="$PROJECT_ROOT/LICENSE"
 METAINFO_FILE="$PROJECT_ROOT/assets/com.wheelhouser.antigravity-ide.metainfo.xml"
 HICOLOR_TAR="$PROJECT_ROOT/assets/icons/hicolor-icons.tar.gz"
+LAUNCHER_SCRIPT="$PROJECT_ROOT/src/antigravity-ide.sh"
 
 if [ ! -f "$ICON_FILE" ]; then
     echo "Error: Cannot find icon at $ICON_FILE. Exiting."
@@ -44,6 +45,11 @@ fi
 
 if [ ! -f "$METAINFO_FILE" ]; then
     echo "Error: Cannot find metainfo at $METAINFO_FILE. Exiting."
+    exit 1
+fi
+
+if [ ! -f "$LAUNCHER_SCRIPT" ]; then
+    echo "Error: Cannot find launcher script at $LAUNCHER_SCRIPT. Exiting."
     exit 1
 fi
 
@@ -125,6 +131,7 @@ cp "$ICON_FILE" "$RPMBUILD_DIR/SOURCES/antigravity-ide-icon.png"
 cp "$LICENSE_FILE" "$RPMBUILD_DIR/SOURCES/LICENSE"
 cp "$METAINFO_FILE" "$RPMBUILD_DIR/SOURCES/com.wheelhouser.antigravity-ide.metainfo.xml"
 cp "$HICOLOR_TAR" "$RPMBUILD_DIR/SOURCES/hicolor-icons.tar.gz"
+cp "$LAUNCHER_SCRIPT" "$RPMBUILD_DIR/SOURCES/antigravity-ide.sh"
 cp "$SPEC_FILE" "$RPMBUILD_DIR/SPECS/antigravity-ide.spec"
 
 echo "Building RPM package(s) for target: $TARGET..."
