@@ -7,12 +7,24 @@
 # ==============================================================================
 set -e
 
-WRAPPER_VERSION="1.0.0-39"
+WRAPPER_VERSION="1.1.0"
 
 # Remote payload endpoints
-DEFAULT_GOOGLE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+GOOGLE_DOWNLOAD_PORTAL="https://antigravity.google/download"
+DEFAULT_GOOGLE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/linux-x64/Antigravity%20IDE.tar.gz"
 STAGING_URL_PRIMARY="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
 STAGING_URL_FALLBACK="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
+
+# Dynamically resolve latest upstream payload URL from official Google portal
+resolve_latest_google_url() {
+    local discovered_url=""
+    discovered_url=$(curl -sL -m 5 "$GOOGLE_DOWNLOAD_PORTAL" 2>/dev/null | grep -o 'https://edgedl\.me\.gvt1\.com/edgedl/release2/[^"'\'' ]*linux-x64/Antigravity%20IDE\.tar\.gz' | head -n 1 || true)
+    if [ -n "$discovered_url" ]; then
+        echo "$discovered_url"
+    else
+        echo "$DEFAULT_GOOGLE_URL"
+    fi
+}
 
 # Resolve installation directory
 resolve_target_dir() {
@@ -115,12 +127,23 @@ do_check_update() {
     echo "Installed Core Version   : v${current_ver}"
 
     echo "Checking Google CDN release channel..."
+    local google_url
+    google_url=$(resolve_latest_google_url)
+    local upstream_ver
+    upstream_ver=$(echo "$google_url" | sed -n 's|.*/stable/\([^/-]*\)[^/]*/linux-x64/.*|\1|p')
+
     local http_headers
-    http_headers=$(curl -sI -4 -m 5 "$DEFAULT_GOOGLE_URL" 2>/dev/null || true)
+    http_headers=$(curl -sI -4 -m 5 "$google_url" 2>/dev/null || true)
     if echo "$http_headers" | grep -qiE "HTTP/.* 200"; then
         local last_mod
         last_mod=$(echo "$http_headers" | grep -i "^last-modified:" | cut -d: -f2- | xargs || true)
-        echo "Upstream Channel Status  : Available (Last Modified: ${last_mod:-N/A})"
+        echo "Upstream Core Version    : v${upstream_ver:-unknown} (Last Modified: ${last_mod:-N/A})"
+        echo "Upstream Channel Status  : Available"
+        if [ -n "$upstream_ver" ] && [ "$current_ver" != "$upstream_ver" ]; then
+            echo "Update Status            : ⚠️  Update available (v${current_ver} -> v${upstream_ver})"
+        else
+            echo "Update Status            : Core payload is up to date"
+        fi
     else
         echo "Upstream Channel Status  : Remote check unreachable or cached"
     fi
@@ -241,8 +264,11 @@ do_update() {
             acquired=true
         else
             rm -f "$archive"
-            echo "📥 Downloading payload from Google CDN..."
-            if curl -4 -sL --retry 3 --retry-delay 2 -o "$archive" "$DEFAULT_GOOGLE_URL" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
+            echo "📥 Resolving latest payload from Google CDN..."
+            local google_url
+            google_url=$(resolve_latest_google_url)
+            echo "   Source URL: $google_url"
+            if curl -4 -sL --retry 3 --retry-delay 2 -o "$archive" "$google_url" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
                 echo "✅ Downloaded payload from Google CDN"
                 acquired=true
             fi

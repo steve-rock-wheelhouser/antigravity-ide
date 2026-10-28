@@ -245,7 +245,11 @@ fi
 if [ "$DOWNLOADED" = false ]; then
     LOCAL_URL1="https://staging.wheelhouser.com/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
     LOCAL_URL2="http://10.0.0.166/downloads/antigravity-ide/Antigravity-IDE.tar.gz"
-    REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+    REMOTE_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/linux-x64/Antigravity%20IDE.tar.gz"
+    DISCOVERED_URL=$(curl -sL -m 5 "https://antigravity.google/download" 2>/dev/null | grep -o 'https://edgedl\.me\.gvt1\.com/edgedl/release2/[^"'\'' ]*linux-x64/Antigravity%20IDE\.tar\.gz' | head -n 1 || true)
+    if [ -n "$DISCOVERED_URL" ]; then
+        REMOTE_URL="$DISCOVERED_URL"
+    fi
 
     if curl -s -f -m 3 --connect-timeout 2 -o "$ARCHIVE" "$LOCAL_URL1" 2>/dev/null && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
         echo "Downloaded payload from Wheelhouser Staging Hub (staging.wheelhouser.com)"

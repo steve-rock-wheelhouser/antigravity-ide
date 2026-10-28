@@ -30,7 +30,12 @@ BACKUP_DIR=""
 trap 'rm -f "$TEMP_DOWNLOAD"; [ -n "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"; [ -n "$BACKUP_DIR" ] && rm -rf "$BACKUP_DIR"' EXIT
 
 # Default stable Antigravity IDE download URL
-DEFAULT_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.5.5-4923483625488384/linux-x64/Antigravity%20IDE.tar.gz"
+GOOGLE_DOWNLOAD_PORTAL="https://antigravity.google/download"
+FALLBACK_URL="https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.6.0-5526304964083712/linux-x64/Antigravity%20IDE.tar.gz"
+DEFAULT_URL=$(curl -sL -m 5 "$GOOGLE_DOWNLOAD_PORTAL" 2>/dev/null | grep -o 'https://edgedl\.me\.gvt1\.com/edgedl/release2/[^"'\'' ]*linux-x64/Antigravity%20IDE\.tar\.gz' | head -n 1 || true)
+if [ -z "$DEFAULT_URL" ]; then
+    DEFAULT_URL="$FALLBACK_URL"
+fi
 
 ARCHIVE_ARG="${1:-}"
 DOWNLOAD_URL=""
