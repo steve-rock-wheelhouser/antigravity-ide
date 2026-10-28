@@ -27,7 +27,14 @@ fi
 TEMP_DOWNLOAD=""
 TEMP_DIR=""
 BACKUP_DIR=""
-trap 'rm -f "$TEMP_DOWNLOAD"; [ -n "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"; [ -n "$BACKUP_DIR" ] && rm -rf "$BACKUP_DIR"' EXIT
+trap 'rm -f "$TEMP_DOWNLOAD"; [ -n "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"; [ -n "$BACKUP_DIR" ] && rm -rf "$BACKUP_DIR"' EXIT INT TERM HUP
+
+# Resolve staging directory: ensure at least 2.5GB free space, fallback to /var/tmp if /tmp lacks space
+TMP_BASE="${TMPDIR:-/tmp}"
+FREE_KB=$(df -k "$TMP_BASE" 2>/dev/null | awk 'NR==2 {print $4}')
+if [ -n "$FREE_KB" ] && [ "$FREE_KB" -lt 2621440 ] && [ -d "/var/tmp" ] && [ -w "/var/tmp" ]; then
+    TMP_BASE="/var/tmp"
+fi
 
 # Default stable Antigravity IDE download URL
 GOOGLE_DOWNLOAD_PORTAL="https://antigravity.google/download"
@@ -69,8 +76,8 @@ echo "Starting Antigravity IDE deployment..."
 # Download archive if a URL is targeted
 if [ -n "$DOWNLOAD_URL" ]; then
     echo "Downloading Antigravity IDE package..."
-    TEMP_DOWNLOAD=$(mktemp -t Antigravity-IDE-XXXXXX.tar.gz)
-    if curl -sL -o "$TEMP_DOWNLOAD" "$DOWNLOAD_URL"; then
+    TEMP_DOWNLOAD=$(mktemp -p "$TMP_BASE" -t Antigravity-IDE-XXXXXX.tar.gz)
+    if curl -sSL --retry 3 --retry-delay 2 -o "$TEMP_DOWNLOAD" "$DOWNLOAD_URL"; then
         DOWNLOAD_ARCHIVE="$TEMP_DOWNLOAD"
     else
         echo "Error: Failed to download Antigravity IDE from $DOWNLOAD_URL"
@@ -98,7 +105,7 @@ mkdir -p "$ICONS_DIR"
 
 # 3. Safely extract and locate the payload
 echo "Extracting payload..."
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR=$(mktemp -d -p "$TMP_BASE" -t antigravity-install-XXXXXX)
 
 tar -xzf "$DOWNLOAD_ARCHIVE" -C "$TEMP_DIR"
 
@@ -116,7 +123,7 @@ SOURCE_DIR=$(dirname "$SANDBOX_FILE")
 
 # Prepare backup directory for safe rollback
 echo "Backing up existing installation..."
-BACKUP_DIR=$(mktemp -d)
+BACKUP_DIR=$(mktemp -d -p "$TMP_BASE" -t antigravity-backup-XXXXXX)
 
 # Copy existing files to backup if installation directory is not empty
 if [ -d "$INSTALL_DIR" ] && [ "$(ls -A "$INSTALL_DIR")" ]; then

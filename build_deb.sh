@@ -205,11 +205,32 @@ set -e
 INSTALL_DIR="/usr/share/antigravity-ide"
 echo "Deploying Antigravity IDE package..."
 mkdir -p "$INSTALL_DIR"
-TEMP_DIR=$(mktemp -d)
+
+# Terminate active Antigravity IDE processes gracefully before payload deployment
+if [ -d "$INSTALL_DIR" ]; then
+    RUNNING_PIDS=$(pgrep -f "${INSTALL_DIR}" 2>/dev/null | grep -v "^$$$" || true)
+    if [ -n "$RUNNING_PIDS" ]; then
+        echo "Terminating active Antigravity IDE processes before payload deployment..."
+        pkill -f "${INSTALL_DIR}" 2>/dev/null || true
+        sleep 1
+    fi
+fi
+
+# Resolve staging directory: ensure at least 2.5GB free space, fallback to /var/tmp if /tmp lacks space
+TMP_BASE="${TMPDIR:-/tmp}"
+FREE_KB=$(df -k "$TMP_BASE" 2>/dev/null | awk 'NR==2 {print $4}')
+if [ -n "$FREE_KB" ] && [ "$FREE_KB" -lt 2621440 ] && [ -d "/var/tmp" ] && [ -w "/var/tmp" ]; then
+    TMP_BASE="/var/tmp"
+fi
+
+# Clean up stale orphaned update temp dirs from previous runs
+find /tmp /var/tmp -maxdepth 1 -name "antigravity-update-*" -type d -mmin +5 -exec rm -rf {} + 2>/dev/null || true
+
+TEMP_DIR=$(mktemp -d -p "$TMP_BASE" antigravity-update-XXXXXX)
 cleanup() {
     rm -rf "$TEMP_DIR"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
 
 ARCHIVE="$TEMP_DIR/Antigravity-IDE.tar.gz"
 DOWNLOADED=false
@@ -220,6 +241,7 @@ for candidate_dir in \
     /home/*/Downloads/"Antigravity IDE"; do
     if [ -d "$candidate_dir" ] && [ -f "$candidate_dir/chrome-sandbox" ]; then
         echo "Found pre-extracted payload at $candidate_dir"
+        rm -rf "$INSTALL_DIR"/*
         cp -r "$candidate_dir/"* "$INSTALL_DIR/"
         DOWNLOADED=true
         break
@@ -260,14 +282,14 @@ if [ "$DOWNLOADED" = false ]; then
     else
         rm -f "$ARCHIVE"
         echo "Downloading payload from Google CDN..."
-        if curl -4 -sL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL" && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
+        if curl -4 -sSL --retry 3 --retry-delay 2 -o "$ARCHIVE" "$REMOTE_URL" && [ -f "$ARCHIVE" ] && gzip -t "$ARCHIVE" 2>/dev/null; then
             echo "Downloaded payload from Google CDN"
             DOWNLOADED=true
         fi
     fi
 fi
 
-if [ ! -f "$INSTALL_DIR/chrome-sandbox" ] && [ -f "$ARCHIVE" ]; then
+if [ -f "$ARCHIVE" ]; then
     echo "Extracting payload..."
     tar -xzf "$ARCHIVE" -C "$TEMP_DIR"
     BIN_FILE=$(find "$TEMP_DIR" -name "chrome-sandbox" -type f | head -n 1)

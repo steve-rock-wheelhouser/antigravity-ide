@@ -203,9 +203,22 @@ do_update() {
     fi
     echo "Current Installed Version: v${current_ver}"
 
+    # Resolve staging directory: ensure at least 2.5GB free space, fallback to /var/tmp if /tmp lacks space
+    local tmp_base="${TMPDIR:-/tmp}"
+    local free_kb
+    free_kb=$(df -k "$tmp_base" 2>/dev/null | awk 'NR==2 {print $4}')
+    if [ -n "$free_kb" ] && [ "$free_kb" -lt 2621440 ] && [ -d "/var/tmp" ] && [ -w "/var/tmp" ]; then
+        tmp_base="/var/tmp"
+    fi
+
+    # Clean up stale orphaned update temp dirs from previous runs if running with root permissions
+    if [ "$(id -u)" -eq 0 ]; then
+        find /tmp /var/tmp -maxdepth 1 -name "antigravity-update-*" -type d -mmin +5 -exec rm -rf {} + 2>/dev/null || true
+    fi
+
     local temp_dir
-    temp_dir=$(mktemp -d -t antigravity-update-XXXXXX)
-    trap 'rm -rf "$temp_dir"' EXIT
+    temp_dir=$(mktemp -d -p "$tmp_base" antigravity-update-XXXXXX)
+    trap 'rm -rf "$temp_dir"' EXIT INT TERM HUP
 
     local archive="$temp_dir/Antigravity-IDE.tar.gz"
     local acquired=false
@@ -214,7 +227,7 @@ do_update() {
     if [ -n "$custom_source" ]; then
         if [[ "$custom_source" =~ ^https?:// ]]; then
             echo "📥 Fetching payload from custom URL: $custom_source"
-            if curl -4 -sL --retry 3 --retry-delay 2 -o "$archive" "$custom_source" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
+            if curl -4 -sSL --retry 3 --retry-delay 2 -o "$archive" "$custom_source" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
                 acquired=true
             else
                 echo "❌ Error: Failed to download valid tarball from custom URL: $custom_source" >&2
@@ -268,7 +281,7 @@ do_update() {
             local google_url
             google_url=$(resolve_latest_google_url)
             echo "   Source URL: $google_url"
-            if curl -4 -sL --retry 3 --retry-delay 2 -o "$archive" "$google_url" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
+            if curl -4 -sSL --retry 3 --retry-delay 2 -o "$archive" "$google_url" && [ -f "$archive" ] && gzip -t "$archive" 2>/dev/null; then
                 echo "✅ Downloaded payload from Google CDN"
                 acquired=true
             fi
@@ -276,7 +289,13 @@ do_update() {
     fi
 
     if [ "$acquired" = false ]; then
-        echo "❌ Error: Failed to acquire valid Antigravity IDE payload archive." >&2
+        local current_free_kb
+        current_free_kb=$(df -k "$temp_dir" 2>/dev/null | awk 'NR==2 {print $4}')
+        if [ -n "$current_free_kb" ] && [ "$current_free_kb" -lt 524288 ]; then
+            echo "❌ Error: Insufficient disk space in $(dirname "$temp_dir") (${current_free_kb}KB available, ~2.5GB required)." >&2
+        else
+            echo "❌ Error: Failed to acquire valid Antigravity IDE payload archive." >&2
+        fi
         exit 1
     fi
 
